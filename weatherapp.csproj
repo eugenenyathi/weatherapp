@@ -35,7 +35,7 @@
   <Folder Include="Mappers\" />
   <Folder Include="Middleware\" />
   <Folder Include="Requests\" />
-  <Folder Include="Services\" />
+  <Folder Include="Services\Interfaces\" />
   <Folder Include="Utils\" />
   <Folder Include="Validators\" />
 </ItemGroup>
