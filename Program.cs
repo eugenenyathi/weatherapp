@@ -22,8 +22,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Register Location Service
 builder.Services.AddScoped<ILocationService, LocationService>();
 
+// Register TrackLocation Service
+builder.Services.AddScoped<ITrackLocationService, TrackLocationService>();
+
+// Register UserPreference Service
+builder.Services.AddScoped<IUserPreferenceService, UserPreferenceService>();
+
 // Register Fluent Validators
-builder.Services.AddValidatorsFromAssemblyContaining<LocationRequestValidator>();
+// builder.Services.AddValidatorsFromAssemblyContaining<CreateLocationRequestValidator>();
+// builder.Services.AddValidatorsFromAssemblyContaining<TrackLocationRequestValidator>();
+// builder.Services.AddValidatorsFromAssemblyContaining<UserPreferenceRequestValidator>();
 
 var app = builder.Build();
 

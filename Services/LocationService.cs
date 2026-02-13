@@ -19,9 +19,6 @@ public class LocationService(AppDbContext context, IMapper mapper) : ILocationSe
 	public async Task<LocationDto> CreateAsync(LocationRequest request)
 	{
 		var location = mapper.Map<Location>(request);
-		location.Id = Guid.NewGuid();
-		location.CreatedAt = DateTime.UtcNow;
-		location.UpdatedAt = DateTime.UtcNow;
 
 		await context.Locations.AddAsync(location);
 		await context.SaveChangesAsync();
