@@ -1,6 +1,6 @@
 ﻿namespace weatherapp.Entities;
 
-public class WeatherDaily: BaseEntity
+public class DayWeather: BaseEntity
 {
 	public decimal MinTemp { get; set; }
 	public decimal MaxTemp  { get; set; }
