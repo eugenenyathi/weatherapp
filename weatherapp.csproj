@@ -31,8 +31,6 @@
   <Folder Include="Controllers\" />
   <Folder Include="Data\" />
   <Folder Include="DataTransferObjects\" />
-  <Folder Include="Enums\" />
-  <Folder Include="Entities\" />
   <Folder Include="Exceptions\" />
   <Folder Include="Mappers\" />
   <Folder Include="Middleware\" />
