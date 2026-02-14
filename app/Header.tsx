@@ -32,7 +32,7 @@ const Header = ({ onAddLocationClick }: HeaderProps) => {
   };
 
   return (
-    <div className="flex items-center justify-between p-4">
+    <div className="fixed top-2 left-1/2 transform -translate-x-1/2 w-[70%] z-10 flex items-center justify-between p-4">
       <div className="flex items-center space-x-2">
         {/* Weather icon - using a sun icon as placeholder */}
         <div className="text-4xl">☀️</div>

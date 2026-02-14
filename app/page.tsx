@@ -73,31 +73,38 @@ export default function Home() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
-        <div className="min-h-screen bg-gray-200 flex items-center justify-center">
-          <div className="w-[70%]">
-            <Header onAddLocationClick={() => setIsModalOpen(true)} />
-            
-            <Tabs defaultValue="all">
-              {selectedLocation ? (
-                <ForecastComponent 
-                  locationName={getLocationName(selectedLocation, savedLocations)} 
-                  onBack={handleBack} 
-                />
+        <div className="min-h-screen bg-gray-200">
+          <Header onAddLocationClick={() => setIsModalOpen(true)} />
+          <div className="flex items-center justify-center pt-24"> {/* Increased padding-top to account for fixed header with top-2 */}
+            <div className="w-[70%]">
+              {savedLocations.length > 0 ? (
+                <Tabs defaultValue="all">
+                  {selectedLocation ? (
+                    <ForecastComponent 
+                      locationName={getLocationName(selectedLocation, savedLocations)} 
+                      onBack={handleBack} 
+                    />
+                  ) : (
+                    <LocationsList 
+                      onSelectLocation={handleSelectLocation} 
+                      savedLocations={savedLocations}
+                    />
+                  )}
+                </Tabs>
               ) : (
-                <LocationsList 
-                  onSelectLocation={handleSelectLocation} 
-                  savedLocations={savedLocations}
-                />
+                <div className="p-8 text-center">
+                  <p className="text-gray-600">Get started by adding your first location</p>
+                </div>
               )}
-            </Tabs>
-            
-            <AddLocationModal 
-              isOpen={isModalOpen}
-              onClose={handleCloseModal}
-              onAddLocation={handleAddLocation}
-              savedLocations={savedLocations}
-              onRemoveLocation={handleRemoveLocation}
-            />
+              
+              <AddLocationModal 
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                onAddLocation={handleAddLocation}
+                savedLocations={savedLocations}
+                onRemoveLocation={handleRemoveLocation}
+              />
+            </div>
           </div>
         </div>
       </QueryClientProvider>
