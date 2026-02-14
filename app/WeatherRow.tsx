@@ -6,13 +6,19 @@ interface WeatherRowProps {
 }
 
 const WeatherRow = ({ day, rain, maxTemp, minTemp }: WeatherRowProps) => {
+  // Extract just the temperature values without the '°C'
+  const maxTempValue = maxTemp.replace('°C', '');
+  const minTempValue = minTemp.replace('°C', '');
+  
   return (
-    <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-      <div className="text-xl font-medium text-gray-800">{day}</div>
-      <div className="flex justify-between space-x-8">
-        <div className="text-xl text-gray-700">{rain}</div>
-        <div className="text-xl text-gray-700">{maxTemp}</div>
-        <div className="text-xl text-gray-700">{minTemp}</div>
+    <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+      <div className="text-lg font-medium text-gray-800">{day}</div>
+      <div className="flex justify-between space-x-6">
+        <div className="flex items-center text-lg text-gray-700">
+          <span className="mr-1">🌧️</span>{rain}
+        </div>
+        <div className="text-lg text-gray-700">{maxTempValue}°</div>
+        <div className="text-lg text-gray-700">{minTempValue}°</div>
       </div>
     </div>
   );

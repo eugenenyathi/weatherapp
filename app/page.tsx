@@ -1,4 +1,5 @@
 import WeatherComponent from './WeatherComponent';
+import Tabs from './Tabs';
 
 export default function Home() {
   return (
@@ -12,7 +13,9 @@ export default function Home() {
           </div>
         </header>
         
-        <WeatherComponent />
+        <Tabs defaultValue="all">
+          <WeatherComponent />
+        </Tabs>
       </div>
     </div>
   );
