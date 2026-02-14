@@ -10,7 +10,7 @@ namespace weatherapp.Services;
 
 public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrackLocationService
 {
-	public async Task<List<TrackLocationDto>> GetAllByUserIdAsync(string userId)
+	public async Task<List<TrackLocationDto>> GetAllByUserIdAsync(Guid userId)
 	{
 		var trackLocations = await context.TrackLocations
 			.Include(tl => tl.Location)
@@ -20,7 +20,7 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 		return mapper.Map<List<TrackLocationDto>>(trackLocations);
 	}
 
-	public async Task<TrackLocationDto> CreateAsync(string userId, TrackLocationRequest request)
+	public async Task<TrackLocationDto> CreateAsync(Guid userId, TrackLocationRequest request)
 	{
 		// Check if the location exists
 		var locationExists = await context.Locations.AnyAsync(l => l.Id == request.LocationId);
@@ -51,11 +51,11 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 		return mapper.Map<TrackLocationDto>(trackLocationWithLocation);
 	}
 
-	public async Task<TrackLocationDto?> UpdateAsync(string userId, Guid locationId, TrackLocationRequest request)
+	public async Task<TrackLocationDto?> UpdateAsync(Guid userId, Guid locationId, TrackLocationRequest request)
 	{
 		var trackLocation = await context.TrackLocations
 			                    .FirstOrDefaultAsync(tl => tl.UserId == userId && tl.LocationId == locationId) ??
-		                    throw new ArgumentException($"Location with ID {request.LocationId} does not exist.");
+		                    throw new ArgumentException($"Tracked location with location ID {locationId} not found for user ID {userId}.");
 
 		// Update only the fields that are provided in the request
 		if (request.IsFavorite.HasValue)
@@ -76,7 +76,7 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 		return mapper.Map<TrackLocationDto>(updatedTrackLocation);
 	}
 
-	public async Task DeleteAsync(string userId, Guid locationId)
+	public async Task DeleteAsync(Guid userId, Guid locationId)
 	{
 		var trackLocation = await context.TrackLocations
 			.FirstOrDefaultAsync(tl => tl.UserId == userId && tl.LocationId == locationId);

@@ -5,6 +5,7 @@ using weatherapp.Services;
 using weatherapp.Services.Interfaces;
 using weatherapp.Mappers;
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using weatherapp.Requests;
 using weatherapp.Validators;
@@ -30,6 +31,9 @@ builder.Services.AddScoped<ITrackLocationService, TrackLocationService>();
 // Register UserPreference Service
 builder.Services.AddScoped<IUserPreferenceService, UserPreferenceService>();
 
+// Register AuthService
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 builder.Services.AddHttpClient<IOpenWeatherService, OpenWeatherService>(client =>
@@ -40,6 +44,10 @@ builder.Services.AddHttpClient<IOpenWeatherService, OpenWeatherService>(client =
 	client.DefaultRequestHeaders.Accept.Add(
 		new MediaTypeWithQualityHeaderValue("application/json"));
 });
+
+// Add FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+builder.Services.AddFluentValidationAutoValidation();
 
 
 var app = builder.Build();

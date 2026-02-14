@@ -10,10 +10,36 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 	public DbSet<UserPreference> UserPreferences { get; set; }
 	public DbSet<DayWeather> DailyWeathers { get; set; }
 	public DbSet<HourWeather> HourlyWeathers { get; set; }
+	public DbSet<User> Users { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		base.OnModelCreating(modelBuilder);
+
+		modelBuilder.Entity<User>(entity =>
+		{
+			entity.HasKey(e => e.Id);
+
+			entity.Property(e => e.Name)
+				.IsRequired()
+				.HasMaxLength(100);
+
+			entity.Property(e => e.Email)
+				.IsRequired()
+				.HasMaxLength(255);
+
+			entity.HasIndex(e => e.Email)
+				.IsUnique();
+
+			entity.Property(e => e.PasswordHash)
+				.IsRequired();
+
+			entity.Property(e => e.CreatedAt)
+				.IsRequired();
+
+			entity.Property(e => e.UpdatedAt)
+				.IsRequired();
+		});
 
 		modelBuilder.Entity<Location>(entity =>
 		{
@@ -45,8 +71,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 			entity.HasKey(e => e.Id);
 
 			entity.Property(e => e.UserId)
-				.IsRequired()
-				.HasMaxLength(255);
+				.IsRequired();
+
+			entity.HasOne(tl => tl.User)
+				.WithMany()
+				.HasForeignKey(tl => tl.UserId)
+				.OnDelete(DeleteBehavior.NoAction); // Changed to NoAction or set to Restrict to avoid multiple cascade paths
 
 			entity.Property(e => e.isFavorite)
 				.HasColumnName("IsFavorite");
@@ -71,8 +101,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 			entity.HasKey(e => e.Id);
 
 			entity.Property(e => e.UserId)
-				.IsRequired()
-				.HasMaxLength(255);
+				.IsRequired();
+
+			entity.HasOne(up => up.User)
+				.WithMany()
+				.HasForeignKey(up => up.UserId)
+				.OnDelete(DeleteBehavior.NoAction); // Changed to NoAction or set to Restrict to avoid multiple cascade paths
 
 			entity.Property(e => e.PreferredUnit)
 				.IsRequired();

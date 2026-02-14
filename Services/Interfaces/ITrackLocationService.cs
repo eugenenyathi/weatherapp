@@ -5,8 +5,8 @@ namespace weatherapp.Services.Interfaces;
 
 public interface ITrackLocationService
 {
-	Task<List<TrackLocationDto>> GetAllByUserIdAsync(string userId);
-	Task<TrackLocationDto> CreateAsync(string userId, TrackLocationRequest request);
-	Task<TrackLocationDto?> UpdateAsync(string userId, Guid locationId, TrackLocationRequest request);
-	Task DeleteAsync(string userId, Guid locationId);
+	Task<List<TrackLocationDto>> GetAllByUserIdAsync(Guid userId);
+	Task<TrackLocationDto> CreateAsync(Guid userId, TrackLocationRequest request);
+	Task<TrackLocationDto?> UpdateAsync(Guid userId, Guid locationId, TrackLocationRequest request);
+	Task DeleteAsync(Guid userId, Guid locationId);
 }

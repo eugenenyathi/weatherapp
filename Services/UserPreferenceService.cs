@@ -11,7 +11,7 @@ namespace weatherapp.Services;
 
 public class UserPreferenceService(AppDbContext context, IMapper mapper) : IUserPreferenceService
 {
-	public async Task<UserPreferenceDto?> GetByUserIdAsync(string userId)
+	public async Task<UserPreferenceDto?> GetByUserIdAsync(Guid userId)
 	{
 		var userPreference = await context.UserPreferences
 			.FirstOrDefaultAsync(up => up.UserId == userId);
@@ -19,7 +19,7 @@ public class UserPreferenceService(AppDbContext context, IMapper mapper) : IUser
 		return userPreference == null ? null : mapper.Map<UserPreferenceDto>(userPreference);
 	}
 
-	public async Task<UserPreferenceDto> CreateAsync(string userId, UserPreferenceRequest request)
+	public async Task<UserPreferenceDto> CreateAsync(Guid userId, UserPreferenceRequest request)
 	{
 		// Check if user preference already exists
 		if (await context.UserPreferences.AnyAsync(up => up.UserId == userId))

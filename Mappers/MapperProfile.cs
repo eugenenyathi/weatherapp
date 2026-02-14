@@ -20,5 +20,7 @@ public class MapperProfile : Profile
 		CreateMap<UserPreference, UserPreferenceDto>();
 
 		CreateMap<UserPreferenceRequest, UserPreference>();
+		
+		CreateMap<User, UserDto>();
 	}
 }
