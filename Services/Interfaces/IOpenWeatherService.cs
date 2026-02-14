@@ -1,4 +1,6 @@
 ﻿using weatherapp.Entities;
+using weatherapp.Enums;
+using weatherapp.DataTransferObjects;
 
 namespace weatherapp.Services.Interfaces;
 

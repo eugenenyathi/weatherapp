@@ -36,7 +36,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-builder.Services.AddHttpClient<IOpenWeatherService, OpenWeatherService>(client =>
+builder.Services.AddScoped<IOpenWeatherService, OpenWeatherService>();
+
+builder.Services.AddHttpClient<IOpenWeatherMapHttpClient, OpenWeatherMapHttpClient>(client =>
 {
 	client.BaseAddress = new Uri("https://api.openweathermap.org/data/3.0/onecall?");
 	client.Timeout = TimeSpan.FromSeconds(30);
@@ -44,6 +46,9 @@ builder.Services.AddHttpClient<IOpenWeatherService, OpenWeatherService>(client =
 	client.DefaultRequestHeaders.Accept.Add(
 		new MediaTypeWithQualityHeaderValue("application/json"));
 });
+
+// Register WeatherForecast Service
+// builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
 
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();

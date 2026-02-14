@@ -22,5 +22,8 @@ public class MapperProfile : Profile
 		CreateMap<UserPreferenceRequest, UserPreference>();
 		
 		CreateMap<User, UserDto>();
+
+		CreateMap<DayWeather, DayWeatherDto>();
+		CreateMap<HourWeather, HourWeatherDto>();
 	}
 }
