@@ -48,7 +48,7 @@ builder.Services.AddHttpClient<IOpenWeatherMapHttpClient, OpenWeatherMapHttpClie
 });
 
 // Register WeatherForecast Service
-// builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
+builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
 
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
