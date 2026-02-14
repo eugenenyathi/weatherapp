@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface Location {
   id: string;
@@ -20,6 +20,7 @@ const AddLocationModal = ({ isOpen, onClose, onAddLocation }: AddLocationModalPr
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Mock data for location suggestions
   const mockLocations: Location[] = [
@@ -54,6 +55,16 @@ const AddLocationModal = ({ isOpen, onClose, onAddLocation }: AddLocationModalPr
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  // Focus the input when the modal opens
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      // Small delay to ensure the modal is rendered before focusing
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
+
   const handleSelectLocation = (location: Location) => {
     onAddLocation(location);
     setSearchTerm('');
@@ -63,7 +74,7 @@ const AddLocationModal = ({ isOpen, onClose, onAddLocation }: AddLocationModalPr
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-white bg-opacity-60 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-800">Add Location</h2>
@@ -77,17 +88,18 @@ const AddLocationModal = ({ isOpen, onClose, onAddLocation }: AddLocationModalPr
         
         <div className="mb-4">
           <input
+            ref={inputRef}
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search for a city..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
           />
         </div>
         
         {isLoading && (
           <div className="text-center py-4">
-            <p>Loading...</p>
+            <p className="text-gray-700">Loading...</p>
           </div>
         )}
         
@@ -99,15 +111,15 @@ const AddLocationModal = ({ isOpen, onClose, onAddLocation }: AddLocationModalPr
                 className="p-3 border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
                 onClick={() => handleSelectLocation(location)}
               >
-                <div className="font-medium">{location.name}</div>
-                <div className="text-sm text-gray-500">{location.country}</div>
+                <div className="font-medium text-gray-800">{location.name}</div>
+                <div className="text-sm text-gray-600">{location.country}</div>
               </div>
             ))}
           </div>
         )}
         
         {!isLoading && searchTerm && suggestions.length === 0 && (
-          <div className="text-center py-4 text-gray-500">
+          <div className="text-center py-4 text-gray-600">
             No locations found
           </div>
         )}
