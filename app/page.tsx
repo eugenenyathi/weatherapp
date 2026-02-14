@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './AuthContext';
 import LocationsList from './WeatherComponent';
 import ForecastComponent from './ForecastComponent';
 import Tabs from './Tabs';
@@ -48,10 +49,7 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
-  const handleUserIconClick = () => {
-    alert('User profile clicked!');
-  };
-
+  
   const handleAddLocation = (location: Location) => {
     // Add the location to saved locations
     const newLocation: SavedLocation = {
@@ -73,37 +71,36 @@ export default function Home() {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-gray-200 flex items-center justify-center">
-        <div className="w-[70%]">
-          <Header 
-            onAddLocationClick={handleAddLocationClick}
-            onUserIconClick={handleUserIconClick}
-          />
-          
-          <Tabs defaultValue="all">
-            {selectedLocation ? (
-              <ForecastComponent 
-                locationName={getLocationName(selectedLocation, savedLocations)} 
-                onBack={handleBack} 
-              />
-            ) : (
-              <LocationsList 
-                onSelectLocation={handleSelectLocation} 
-                savedLocations={savedLocations}
-              />
-            )}
-          </Tabs>
-          
-          <AddLocationModal 
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-            onAddLocation={handleAddLocation}
-            savedLocations={savedLocations}
-            onRemoveLocation={handleRemoveLocation}
-          />
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <div className="min-h-screen bg-gray-200 flex items-center justify-center">
+          <div className="w-[70%]">
+            <Header onAddLocationClick={() => setIsModalOpen(true)} />
+            
+            <Tabs defaultValue="all">
+              {selectedLocation ? (
+                <ForecastComponent 
+                  locationName={getLocationName(selectedLocation, savedLocations)} 
+                  onBack={handleBack} 
+                />
+              ) : (
+                <LocationsList 
+                  onSelectLocation={handleSelectLocation} 
+                  savedLocations={savedLocations}
+                />
+              )}
+            </Tabs>
+            
+            <AddLocationModal 
+              isOpen={isModalOpen}
+              onClose={handleCloseModal}
+              onAddLocation={handleAddLocation}
+              savedLocations={savedLocations}
+              onRemoveLocation={handleRemoveLocation}
+            />
+          </div>
         </div>
-      </div>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
