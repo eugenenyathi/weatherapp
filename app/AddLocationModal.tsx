@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 
 interface Location {
   id: string;
@@ -10,50 +12,55 @@ interface Location {
   lon: number;
 }
 
+interface SavedLocation {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+}
+
 interface AddLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddLocation: (location: Location) => void;
+  savedLocations: SavedLocation[];
+  onRemoveLocation: (id: string) => void;
 }
 
-const AddLocationModal = ({ isOpen, onClose, onAddLocation }: AddLocationModalProps) => {
+const AddLocationModal = ({ 
+  isOpen, 
+  onClose, 
+  onAddLocation, 
+  savedLocations, 
+  onRemoveLocation 
+}: AddLocationModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [suggestions, setSuggestions] = useState<Location[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Mock data for location suggestions
-  const mockLocations: Location[] = [
-    { id: '1', name: 'New York', country: 'US', lat: 40.7128, lon: -74.0060 },
-    { id: '2', name: 'London', country: 'UK', lat: 51.5074, lon: -0.1278 },
-    { id: '3', name: 'Tokyo', country: 'JP', lat: 35.6762, lon: 139.6503 },
-    { id: '4', name: 'Sydney', country: 'AU', lat: -33.8688, lon: 151.2093 },
-    { id: '5', name: 'Paris', country: 'FR', lat: 48.8566, lon: 2.3522 },
-    { id: '6', name: 'Berlin', country: 'DE', lat: 52.5200, lon: 13.4050 },
-    { id: '7', name: 'Rome', country: 'IT', lat: 41.9028, lon: 12.4964 },
-    { id: '8', name: 'Madrid', country: 'ES', lat: 40.4168, lon: -3.7038 },
-  ];
-
-  useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setSuggestions([]);
-      return;
-    }
-
-    setIsLoading(true);
-    
-    // Simulate API call delay
-    const timer = setTimeout(() => {
-      const filtered = mockLocations.filter(location => 
-        location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        location.country.toLowerCase().includes(searchTerm.toLowerCase())
+  // Fetch location suggestions from OpenWeatherMap API
+  const { data: suggestions = [], isLoading } = useQuery({
+    queryKey: ['geocoding', searchTerm],
+    queryFn: async () => {
+      if (!searchTerm.trim()) return [];
+      
+      // Note: You'll need to replace 'YOUR_API_KEY' with an actual OpenWeatherMap API key
+      const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+      const response = await axios.get(
+        `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(searchTerm)}&limit=10&appid=${API_KEY}`
       );
-      setSuggestions(filtered);
-      setIsLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+      
+      // Transform the API response to match our Location interface
+      return response.data.map((item: any, index: number) => ({
+        id: `${item.lat}-${item.lon}-${index}`, // Create a unique ID
+        name: item.name,
+        country: item.country,
+        lat: item.lat,
+        lon: item.lon
+      }));
+    },
+    enabled: !!searchTerm.trim(), // Only run the query if searchTerm is not empty
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
   // Focus the input when the modal opens
   useEffect(() => {
@@ -68,7 +75,6 @@ const AddLocationModal = ({ isOpen, onClose, onAddLocation }: AddLocationModalPr
   const handleSelectLocation = (location: Location) => {
     onAddLocation(location);
     setSearchTerm('');
-    setSuggestions([]);
   };
 
   if (!isOpen) return null;
@@ -104,7 +110,7 @@ const AddLocationModal = ({ isOpen, onClose, onAddLocation }: AddLocationModalPr
         )}
         
         {!isLoading && suggestions.length > 0 && (
-          <div className="border border-gray-200 rounded-md max-h-60 overflow-y-auto">
+          <div className="border border-gray-200 rounded-md max-h-60 overflow-y-auto mb-4">
             {suggestions.map((location) => (
               <div
                 key={location.id}
@@ -119,10 +125,35 @@ const AddLocationModal = ({ isOpen, onClose, onAddLocation }: AddLocationModalPr
         )}
         
         {!isLoading && searchTerm && suggestions.length === 0 && (
-          <div className="text-center py-4 text-gray-600">
+          <div className="text-center py-4 text-gray-600 mb-4">
             No locations found
           </div>
         )}
+        
+        {/* Display saved locations */}
+        <div>
+          <h3 className="font-medium text-gray-800 mb-2">Added Locations</h3>
+          {savedLocations.length === 0 ? (
+            <p className="text-gray-600 text-sm">No locations added yet</p>
+          ) : (
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {savedLocations.map((location) => (
+                <div 
+                  key={location.id} 
+                  className="flex justify-between items-center p-2 border border-gray-200 rounded-md"
+                >
+                  <span className="text-gray-700">{location.name}</span>
+                  <button 
+                    onClick={() => onRemoveLocation(location.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
