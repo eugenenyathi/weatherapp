@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+using System.Reflection;
 using weatherapp.Data;
 using weatherapp.Services;
 using weatherapp.Services.Interfaces;
@@ -28,10 +30,17 @@ builder.Services.AddScoped<ITrackLocationService, TrackLocationService>();
 // Register UserPreference Service
 builder.Services.AddScoped<IUserPreferenceService, UserPreferenceService>();
 
-// Register Fluent Validators
-// builder.Services.AddValidatorsFromAssemblyContaining<CreateLocationRequestValidator>();
-// builder.Services.AddValidatorsFromAssemblyContaining<TrackLocationRequestValidator>();
-// builder.Services.AddValidatorsFromAssemblyContaining<UserPreferenceRequestValidator>();
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
+builder.Services.AddHttpClient<IOpenWeatherService, OpenWeatherService>(client =>
+{
+	client.BaseAddress = new Uri("https://api.openweathermap.org/data/3.0/onecall?");
+	client.Timeout = TimeSpan.FromSeconds(30);
+
+	client.DefaultRequestHeaders.Accept.Add(
+		new MediaTypeWithQualityHeaderValue("application/json"));
+});
+
 
 var app = builder.Build();
 

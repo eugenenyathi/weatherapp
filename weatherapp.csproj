@@ -30,12 +30,10 @@
 <ItemGroup>
   <Folder Include="Controllers\" />
   <Folder Include="Data\" />
-  <Folder Include="DataTransferObjects\" />
   <Folder Include="Exceptions\" />
   <Folder Include="Mappers\" />
   <Folder Include="Middleware\" />
   <Folder Include="Requests\" />
-  <Folder Include="Services\Interfaces\" />
   <Folder Include="Utils\" />
   <Folder Include="Validators\" />
 </ItemGroup>

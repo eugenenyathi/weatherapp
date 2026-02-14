@@ -8,8 +8,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 	public DbSet<Location> Locations { get; set; }
 	public DbSet<TrackLocation> TrackLocations { get; set; }
 	public DbSet<UserPreference> UserPreferences { get; set; }
-	public DbSet<DayWeather> DailyWeather { get; set; }
-	public DbSet<HourWeather> HourlyWeather { get; set; }
+	public DbSet<DayWeather> DailyWeathers { get; set; }
+	public DbSet<HourWeather> HourlyWeathers { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -18,11 +18,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 		modelBuilder.Entity<Location>(entity =>
 		{
 			entity.HasKey(e => e.Id);
-			
+
 			entity.Property(e => e.Name)
 				.IsRequired()
 				.HasMaxLength(200);
-			
+
 			entity.Property(e => e.Latitude)
 				.HasColumnType("decimal(9,6)");
 
@@ -92,20 +92,29 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 		{
 			entity.HasKey(e => e.Id);
 
-			entity.Property(e => e.MinTemp)
-				.HasColumnType("decimal(5,2)");
+			entity.Property(e => e.MinTempMetric)
+				.HasColumnType("decimal(5,2)")
+				.IsRequired();
 
-			entity.Property(e => e.MaxTemp)
-				.HasColumnType("decimal(5,2)");
+			entity.Property(e => e.MaxTempMetric)
+				.HasColumnType("decimal(5,2)")
+				.IsRequired();
+			
+			entity.Property(e => e.MinTempImperial)
+				.IsRequired();
+			
+			entity.Property(e => e.MaxTempImperial)
+				.IsRequired();
 
 			entity.Property(e => e.Humidity)
-				.HasColumnType("decimal(5,2)");
+				.IsRequired();
 
 			entity.Property(e => e.Rain)
 				.HasColumnType("decimal(6,2)");
 
 			entity.Property(e => e.Summary)
-				.HasMaxLength(500);
+				.HasMaxLength(200)
+				.IsRequired();;
 
 			// Configure timestamps
 			entity.Property(e => e.CreatedAt)
@@ -113,17 +122,29 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
 			entity.Property(e => e.UpdatedAt)
 				.IsRequired();
+
+			entity.HasOne(e => e.Location)
+				.WithMany(e => e.DailyWeathers)
+				.HasForeignKey(e => e.LocationId);
 		});
 
 		modelBuilder.Entity<HourWeather>(entity =>
 		{
 			entity.HasKey(e => e.Id);
 
-			entity.Property(e => e.Temp)
-				.HasColumnType("decimal(5,2)");
+			entity.Property(e => e.DateTime)
+				.IsRequired();
+
+			entity.Property(e => e.TempMetric)
+				.HasColumnType("decimal(5,2)")
+				.IsRequired();
+			
+			entity.Property(e => e.TempImperial)
+				.IsRequired();
 
 			entity.Property(e => e.Humidity)
-				.HasColumnType("decimal(5,2)");
+				.HasColumnType("decimal(5,2)")
+				.IsRequired();
 
 			// Configure timestamps
 			entity.Property(e => e.CreatedAt)
