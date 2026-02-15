@@ -8,10 +8,18 @@ namespace weatherapp.Controllers;
 [Route("api/weather-forecasts")]
 public class WeatherForecastController(IWeatherForecastService weatherForecastService) : ControllerBase
 {
-    [HttpGet("tracked/{userId}")]
-    public async Task<ActionResult<List<DailyWeatherDto>>> GetTrackedForecasts(Guid userId)
+
+    [HttpGet("current-day-summaries/{userId}")]
+    public async Task<ActionResult<List<LocationWeatherSummaryDto>>> GetCurrentDaySummariesForAllTrackedLocations(Guid userId)
     {
-        var forecasts = await weatherForecastService.GetTrackedForecastsAsync(userId);
-        return Ok(forecasts);
+        var summaries = await weatherForecastService.GetCurrentDaySummariesForAllTrackedLocationsAsync(userId);
+        return Ok(summaries);
+    }
+
+    [HttpGet("five-day-forecast/{locationId}/{userId}")]
+    public async Task<ActionResult<LocationFiveDayForecastDto>> GetFiveDayForecastForLocation(Guid locationId, Guid userId)
+    {
+        var forecast = await weatherForecastService.GetFiveDayForecastForLocationAsync(locationId, userId);
+        return Ok(forecast);
     }
 }
