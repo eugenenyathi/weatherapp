@@ -137,12 +137,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 				.IsRequired();
 			
 			entity.Property(e => e.MinTempImperial)
+				.HasColumnType("decimal(5,2)")
 				.IsRequired();
 			
 			entity.Property(e => e.MaxTempImperial)
+				.HasColumnType("decimal(5,2)")
 				.IsRequired();
 
 			entity.Property(e => e.Humidity)
+				.HasColumnType("decimal(5,2)")
 				.IsRequired();
 
 			entity.Property(e => e.Rain)
@@ -176,6 +179,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 				.IsRequired();
 			
 			entity.Property(e => e.TempImperial)
+				.HasColumnType("decimal(5,2)")
 				.IsRequired();
 
 			entity.Property(e => e.Humidity)
