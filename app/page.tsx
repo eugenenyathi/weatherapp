@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './AuthContext';
 import LocationsList from './WeatherComponent';
 import ForecastComponent from './ForecastComponent';
 import Tabs from './Tabs';
@@ -49,7 +48,7 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
-  
+
   const handleAddLocation = (location: Location) => {
     // Add the location to saved locations
     const newLocation: SavedLocation = {
@@ -58,7 +57,7 @@ export default function Home() {
       lat: location.lat,
       lon: location.lon
     };
-    
+
     setSavedLocations(prev => [...prev, newLocation]);
   };
 
@@ -71,43 +70,41 @@ export default function Home() {
   };
 
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <div className="min-h-screen bg-gray-200">
-          <Header onAddLocationClick={() => setIsModalOpen(true)} />
-          <div className="flex items-center justify-center pt-24"> {/* Increased padding-top to account for fixed header with top-2 */}
-            <div className="w-[70%]">
-              {savedLocations.length > 0 ? (
-                <Tabs defaultValue="all">
-                  {selectedLocation ? (
-                    <ForecastComponent 
-                      locationName={getLocationName(selectedLocation, savedLocations)} 
-                      onBack={handleBack} 
-                    />
-                  ) : (
-                    <LocationsList 
-                      onSelectLocation={handleSelectLocation} 
-                      savedLocations={savedLocations}
-                    />
-                  )}
-                </Tabs>
-              ) : (
-                <div className="p-8 text-center">
-                  <p className="text-gray-600">Get started by adding your first location</p>
-                </div>
-              )}
-              
-              <AddLocationModal 
-                isOpen={isModalOpen}
-                onClose={handleCloseModal}
-                onAddLocation={handleAddLocation}
-                savedLocations={savedLocations}
-                onRemoveLocation={handleRemoveLocation}
-              />
-            </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen bg-gray-200">
+        <Header onAddLocationClick={() => setIsModalOpen(true)} />
+        <div className="flex items-center justify-center pt-24"> {/* Increased padding-top to account for fixed header with top-2 */}
+          <div className="w-[70%]">
+            {savedLocations.length > 0 ? (
+              <Tabs defaultValue="all">
+                {selectedLocation ? (
+                  <ForecastComponent
+                    locationName={getLocationName(selectedLocation, savedLocations)}
+                    onBack={handleBack}
+                  />
+                ) : (
+                  <LocationsList
+                    onSelectLocation={handleSelectLocation}
+                    savedLocations={savedLocations}
+                  />
+                )}
+              </Tabs>
+            ) : (
+              <div className="p-8 text-center">
+                <p className="text-gray-600">Get started by adding your first location</p>
+              </div>
+            )}
+
+            <AddLocationModal
+              isOpen={isModalOpen}
+              onClose={handleCloseModal}
+              onAddLocation={handleAddLocation}
+              savedLocations={savedLocations}
+              onRemoveLocation={handleRemoveLocation}
+            />
           </div>
         </div>
-      </QueryClientProvider>
-    </AuthProvider>
+      </div>
+    </QueryClientProvider>
   );
 }
