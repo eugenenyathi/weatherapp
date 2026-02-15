@@ -1,5 +1,8 @@
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text.Json.Serialization;
+using Hangfire;
+using Hangfire.SqlServer;
 using weatherapp.Data;
 using weatherapp.Services;
 using weatherapp.Services.Interfaces;
@@ -20,9 +23,21 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Add Hangfire services
+builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHangfireServer();
+
 builder.Services.AddControllers(options =>
 {
 	options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+}).AddJsonOptions(options =>
+{
+	options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
 builder.Services.AddCors(options =>
 {
@@ -80,5 +95,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontendOrigin");
 app.UseRouting();
+
+// Add Hangfire middleware
+app.UseHangfireDashboard();
+
 app.MapControllers();
 app.Run();

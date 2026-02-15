@@ -12,6 +12,7 @@ namespace weatherapp.Services;
 
 public class UserPreferenceService(AppDbContext context, IMapper mapper) : IUserPreferenceService
 {
+
 	public async Task<UserPreferenceDto?> GetByUserIdAsync(Guid userId)
 	{
 		var userPreference = await context.UserPreferences
