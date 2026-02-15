@@ -12,12 +12,8 @@ const Header = ({ onAddLocationClick }: HeaderProps) => {
   const router = useRouter();
 
   const handleAddLocationButtonClick = () => {
-    if (isLoggedIn) {
-      onAddLocationClick();
-    } else {
-      // Redirect to login page
-      router.push("/login");
-    }
+    // Call the parent function which will handle showing the warning if needed
+    onAddLocationClick();
   };
 
   const handleUserIconClick = () => {

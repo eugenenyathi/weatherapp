@@ -27,12 +27,12 @@ interface AddLocationModalProps {
   onRemoveLocation: (id: string) => void;
 }
 
-const AddLocationModal = ({ 
-  isOpen, 
-  onClose, 
-  onAddLocation, 
-  savedLocations, 
-  onRemoveLocation 
+const AddLocationModal = ({
+  isOpen,
+  onClose,
+  onAddLocation,
+  savedLocations,
+  onRemoveLocation
 }: AddLocationModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,13 +42,13 @@ const AddLocationModal = ({
     queryKey: ['geocoding', searchTerm],
     queryFn: async () => {
       if (!searchTerm.trim()) return [];
-      
+
       // Note: You'll need to replace 'YOUR_API_KEY' with an actual OpenWeatherMap API key
       const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
       const response = await axios.get(
         `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(searchTerm)}&limit=10&appid=${API_KEY}`
       );
-      
+
       // Transform the API response to match our Location interface
       return response.data.map((item: any, index: number) => ({
         id: `${item.lat}-${item.lon}-${index}`, // Create a unique ID
@@ -84,14 +84,14 @@ const AddLocationModal = ({
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-800">Add Location</h2>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
           >
             ✕
           </button>
         </div>
-        
+
         <div className="mb-4">
           <input
             ref={inputRef}
@@ -102,13 +102,13 @@ const AddLocationModal = ({
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
           />
         </div>
-        
+
         {isLoading && (
           <div className="text-center py-4">
             <p className="text-gray-700">Loading...</p>
           </div>
         )}
-        
+
         {!isLoading && suggestions.length > 0 && (
           <div className="border border-gray-200 rounded-md max-h-60 overflow-y-auto mb-4">
             {suggestions.map((location) => (
@@ -123,13 +123,13 @@ const AddLocationModal = ({
             ))}
           </div>
         )}
-        
+
         {!isLoading && searchTerm && suggestions.length === 0 && (
           <div className="text-center py-4 text-gray-600 mb-4">
             No locations found
           </div>
         )}
-        
+
         {/* Display saved locations */}
         <div>
           <h3 className="font-medium text-gray-800 mb-2">Added Locations</h3>
@@ -138,12 +138,12 @@ const AddLocationModal = ({
           ) : (
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {savedLocations.map((location) => (
-                <div 
-                  key={location.id} 
+                <div
+                  key={location.id}
                   className="flex justify-between items-center p-2 border border-gray-200 rounded-md"
                 >
                   <span className="text-gray-700">{location.name}</span>
-                  <button 
+                  <button
                     onClick={() => onRemoveLocation(location.id)}
                     className="text-red-500 hover:text-red-700"
                   >
