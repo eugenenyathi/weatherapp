@@ -22,15 +22,19 @@ public class UserPreferenceService(AppDbContext context, IMapper mapper) : IUser
 
 	public async Task<UserPreferenceDto> CreateAsync(Guid userId, UserPreferenceRequest request)
 	{
+		if(!await context.Users.AnyAsync(u => u.Id == userId))
+			throw new Exception("User doesn't exist");
 		// Check if user preference already exists
 		if (await context.UserPreferences.AnyAsync(up => up.UserId == userId))
 			throw new InvalidOperationException(
 				$"User preference already exists for user ID {userId}.");
 
-		var userPreference = mapper.Map<UserPreference>(request);
-		userPreference.UserId = userId;
-		userPreference.PreferredUnit = request.PreferredUnit ?? Unit.Metric; // Default to Metric if not provided
-		userPreference.RefreshInterval = request.RefreshInterval ?? 30; // Default to 30 minutes if not provided
+		var userPreference = new UserPreference
+		{
+			UserId = userId,
+			PreferredUnit = request.PreferredUnit ?? Unit.Metric,// Default to Metric if not provided
+			RefreshInterval = request.RefreshInterval ?? 30 // Default to 30 minutes if not provided
+		};
 
 		await context.UserPreferences.AddAsync(userPreference);
 		await context.SaveChangesAsync();

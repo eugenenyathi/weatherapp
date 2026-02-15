@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using weatherapp.Entities;
+using weatherapp.Enums;
 
 namespace weatherapp.Data;
 
@@ -109,6 +110,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 				.OnDelete(DeleteBehavior.NoAction); // Changed to NoAction or set to Restrict to avoid multiple cascade paths
 
 			entity.Property(e => e.PreferredUnit)
+				.HasConversion<string>()
 				.IsRequired();
 
 			entity.Property(e => e.RefreshInterval)

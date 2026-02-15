@@ -15,9 +15,9 @@ public class UserPreferenceController(IUserPreferenceService userPreferenceServi
         return Ok(await userPreferenceService.GetByUserIdAsync(userId));
     }
 
-    [HttpPost]
+    [HttpPost("{userId}")]
     public async Task<ActionResult<UserPreferenceDto>> Create(
-        [FromQuery] Guid userId,
+         Guid userId,
         [FromBody] UserPreferenceRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
