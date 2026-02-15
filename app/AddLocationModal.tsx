@@ -7,16 +7,17 @@ import axios from 'axios';
 interface Location {
   id: string;
   name: string;
+  latitude: number;
+  longitude: number;
   country: string;
-  lat: number;
-  lon: number;
 }
 
 interface SavedLocation {
   id: string;
   name: string;
-  lat: number;
-  lon: number;
+  latitude: number;
+  longitude: number;
+  country: string;
 }
 
 interface AddLocationModalProps {
@@ -43,7 +44,6 @@ const AddLocationModal = ({
     queryFn: async () => {
       if (!searchTerm.trim()) return [];
 
-      // Note: You'll need to replace 'YOUR_API_KEY' with an actual OpenWeatherMap API key
       const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
       const response = await axios.get(
         `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(searchTerm)}&limit=10&appid=${API_KEY}`
@@ -51,11 +51,11 @@ const AddLocationModal = ({
 
       // Transform the API response to match our Location interface
       return response.data.map((item: any, index: number) => ({
-        id: `${item.lat}-${item.lon}-${index}`, // Create a unique ID
+        id: `${item.lat}-${item.lon}-${index}`,
         name: item.name,
-        country: item.country,
-        lat: item.lat,
-        lon: item.lon
+        latitude: item.lat,
+        longitude: item.lon,
+        country: item.country
       }));
     },
     enabled: !!searchTerm.trim(), // Only run the query if searchTerm is not empty

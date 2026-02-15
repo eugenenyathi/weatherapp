@@ -40,8 +40,6 @@ export default function Home() {
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
-  const [selectedLocationToAdd, setSelectedLocationToAdd] =
-    useState<Location | null>(null);
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
   const { isLoggedIn } = useAuth(); // Get the authentication status
 
@@ -65,15 +63,8 @@ export default function Home() {
   };
 
   const handleAddLocation = (location: Location) => {
-    // Check if user is logged in
-    if (!isLoggedIn) {
-      // Show warning modal for unauthenticated users
-      setSelectedLocationToAdd(location);
-      setIsWarningModalOpen(true);
-    } else {
-      // If authenticated, add location directly
-      addLocationToState(location);
-    }
+    // Add location directly since user has already acknowledged the warning
+    addLocationToState(location);
   };
 
   const addLocationToState = (location: Location) => {
@@ -96,7 +87,6 @@ export default function Home() {
 
   const handleCancelAddLocation = () => {
     setIsWarningModalOpen(false);
-    setSelectedLocationToAdd(null);
   };
 
   const handleRemoveLocation = (id: string) => {
@@ -109,7 +99,6 @@ export default function Home() {
 
   const handleCloseWarningModal = () => {
     setIsWarningModalOpen(false);
-    setSelectedLocationToAdd(null);
     setIsModalOpen(false); // Close the main modal too when going to login
   };
 
