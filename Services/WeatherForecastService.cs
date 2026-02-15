@@ -2,10 +2,11 @@
 using weatherapp.Data;
 using weatherapp.DataTransferObjects;
 using weatherapp.Enums;
+using weatherapp.Services.Interfaces;
 
 namespace weatherapp.Services;
 
-public class WeatherForecastService(AppDbContext context)
+public class WeatherForecastService(AppDbContext context): IWeatherForecastService
 {
 	public async Task<List<DailyWeatherDto>> GetTrackedForecastsAsync(Guid userId)
 	{

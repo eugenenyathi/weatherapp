@@ -20,23 +20,15 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register AutoMapper
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 // Register Location Service
 builder.Services.AddScoped<ILocationService, LocationService>();
-
-// Register TrackLocation Service
 builder.Services.AddScoped<ITrackLocationService, TrackLocationService>();
-
-// Register UserPreference Service
 builder.Services.AddScoped<IUserPreferenceService, UserPreferenceService>();
-
-// Register AuthService
-builder.Services.AddScoped<IAuthService, AuthService>();
-
-builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
 builder.Services.AddScoped<IOpenWeatherService, OpenWeatherService>();
+builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddHttpClient<IOpenWeatherMapHttpClient, OpenWeatherMapHttpClient>(client =>
 {
@@ -48,7 +40,6 @@ builder.Services.AddHttpClient<IOpenWeatherMapHttpClient, OpenWeatherMapHttpClie
 });
 
 // Register WeatherForecast Service
-builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
 
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
