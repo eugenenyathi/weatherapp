@@ -7,6 +7,6 @@ public interface IUserPreferenceService
 {
 	Task<UserPreferenceDto?> GetByUserIdAsync(Guid userId);
 	Task<UserPreferenceDto> CreateAsync(Guid userId, UserPreferenceRequest request);
-	Task<UserPreferenceDto> UpdateAsync(Guid preferenceId, UserPreferenceRequest request);
-	Task DeleteAsync(Guid preferenceId);
+	Task<UserPreferenceDto> UpdateAsync(Guid userId, Guid preferenceId, UserPreferenceRequest request);
+	Task DeleteAsync(Guid userId, Guid preferenceId);
 }

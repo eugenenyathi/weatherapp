@@ -10,35 +10,36 @@ namespace weatherapp.Controllers;
 public class UserPreferenceController(IUserPreferenceService userPreferenceService) : ControllerBase
 {
     [HttpGet("{userId}")]
-    public async Task<ActionResult<UserPreferenceDto?>> GetUserPreference(Guid userId)
+    public async Task<ActionResult<UserPreferenceDto>> Get(Guid userId)
     {
         return Ok(await userPreferenceService.GetByUserIdAsync(userId));
     }
 
     [HttpPost]
-    public async Task<ActionResult<UserPreferenceDto>> CreateUserPreference(
-        [FromQuery] Guid userId, 
+    public async Task<ActionResult<UserPreferenceDto>> Create(
+        [FromQuery] Guid userId,
         [FromBody] UserPreferenceRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-            
+
         return Ok(await userPreferenceService.CreateAsync(userId, request));
     }
 
-    [HttpPut("{preferenceId}")]
-    public async Task<ActionResult<UserPreferenceDto>> UpdateUserPreference(
-        Guid preferenceId, 
+    [HttpPut("{userId}/{preferenceId}")]
+    public async Task<ActionResult<UserPreferenceDto>> Update(
+        Guid userId,
+        Guid preferenceId,
         [FromBody] UserPreferenceRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-        return Ok(await userPreferenceService.UpdateAsync(preferenceId, request));
+
+        return Ok(await userPreferenceService.UpdateAsync(userId, preferenceId, request));
     }
 
-    [HttpDelete("{preferenceId}")]
-    public async Task<ActionResult> DeleteUserPreference(Guid preferenceId)
+    [HttpDelete("{userId}/{preferenceId}")]
+    public async Task<ActionResult> Delete(Guid userId, Guid preferenceId)
     {
-        await userPreferenceService.DeleteAsync(preferenceId);
+        await userPreferenceService.DeleteAsync(userId, preferenceId);
         return NoContent();
     }
 }

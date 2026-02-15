@@ -15,20 +15,20 @@ public class TrackLocationController(ITrackLocationService trackLocationService)
 		return Ok(await trackLocationService.GetAllByUserIdAsync(userId));
 	}
 
-	[HttpPost]
+	[HttpPost("{userId}")]
 	public async Task<ActionResult<TrackLocationDto>> Create(Guid userId,
-		[FromBody] TrackLocationRequest trackLocationRequest)
+		[FromBody] CreateTrackLocationRequest trackLocationRequests)
 	{
 		if (!ModelState.IsValid) return BadRequest(ModelState);
-		return Ok(await trackLocationService.CreateAsync(userId, trackLocationRequest));
+		return Ok(await trackLocationService.CreateAsync(userId, trackLocationRequests));
 	}
 
-	[HttpPut("{userId}/{trackLocationId}")]
-	public async Task<ActionResult<TrackLocationDto>> Update(Guid userId, Guid trackLocationId,
-		[FromBody] TrackLocationRequest trackLocationRequest)
+	[HttpPut("{userId}/{trackedLocationId}")]
+	public async Task<ActionResult<TrackLocationDto>> Update(Guid userId, Guid trackedLocationId,
+		[FromBody] UpdateTrackLocationRequest trackLocationRequests)
 	{
 		if (!ModelState.IsValid) return BadRequest(ModelState);
-		return Ok(await trackLocationService.UpdateAsync(userId, trackLocationId, trackLocationRequest));
+		return Ok(await trackLocationService.UpdateAsync(userId, trackedLocationId, trackLocationRequests));
 	}
 
 	[HttpDelete("{userId}/{trackedLocationId}")]

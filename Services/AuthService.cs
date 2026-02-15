@@ -17,9 +17,7 @@ public class AuthService(AppDbContext context, IMapper mapper) : IAuthService
         // Check if email is already taken
         var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (existingUser != null)
-        {
             throw new DuplicateEmailException("Email address is already registered.");
-        }
 
         // Hash password
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -29,14 +27,35 @@ public class AuthService(AppDbContext context, IMapper mapper) : IAuthService
             Name = request.Name,
             Email = request.Email,
             PasswordHash = passwordHash,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
         };
 
-        context.Users.Add(newUser);
+        await context.Users.AddAsync(newUser);
         await context.SaveChangesAsync();
 
         return mapper.Map<UserDto>(newUser);
+    }
+
+    public async Task<LoginResponseDto> Login(LoginRequest request)
+    {
+        // Find user by email
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        if (user == null)
+            throw new UnauthorizedAccessException("Invalid email or password.");
+
+        // Verify password
+        var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+        if (!isPasswordValid)
+            throw new UnauthorizedAccessException("Invalid email or password.");
+
+        // Map user entity to LoginResponseDto
+        var loginResponse = new LoginResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email
+        };
+
+        return loginResponse;
     }
 
     public async Task<UserDto> Update(Guid userId, UpdateRequest request)
@@ -56,7 +75,7 @@ public class AuthService(AppDbContext context, IMapper mapper) : IAuthService
                 throw new DuplicateEmailException("Email address is already registered by another user.");
             }
         }
-        
+
         user.Name = request.Name;
         user.Email = request.Email;
         user.UpdatedAt = DateTime.UtcNow;

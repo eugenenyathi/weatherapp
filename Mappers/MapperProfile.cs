@@ -15,7 +15,7 @@ public class MapperProfile : Profile
 
 		CreateMap<TrackLocation, TrackLocationDto>();
 
-		CreateMap<TrackLocationRequest, TrackLocation>();
+		CreateMap<CreateTrackLocationRequest, TrackLocation>();
 
 		CreateMap<UserPreference, UserPreferenceDto>();
 

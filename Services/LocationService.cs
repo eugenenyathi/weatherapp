@@ -18,6 +18,12 @@ public class LocationService(AppDbContext context, IMapper mapper) : ILocationSe
 
 	public async Task<LocationDto> CreateAsync(LocationRequest request)
 	{
+		if (await context.Locations.AnyAsync(l => l.Name == request.Name))
+		{
+			return (await context.Locations.Where(l => l.Name == request.Name)
+				.ProjectTo<LocationDto>(mapper.ConfigurationProvider).FirstOrDefaultAsync())!;
+		}
+		
 		var location = mapper.Map<Location>(request);
 
 		await context.Locations.AddAsync(location);

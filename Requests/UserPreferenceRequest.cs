@@ -1,10 +1,9 @@
 using weatherapp.Enums;
 
-namespace weatherapp.Requests
+namespace weatherapp.Requests;
+
+public class UserPreferenceRequest
 {
-    public class UserPreferenceRequest
-    {
-        public Unit? PreferredUnit { get; set; }
-        public int? RefreshInterval { get; set; }
-    }
+	public Unit? PreferredUnit { get; set; }
+	public int? RefreshInterval { get; set; }
 }

@@ -20,24 +20,24 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 		return mapper.Map<List<TrackLocationDto>>(trackLocations);
 	}
 
-	public async Task<TrackLocationDto> CreateAsync(Guid userId, TrackLocationRequest request)
+	public async Task<TrackLocationDto> CreateAsync(Guid userId, CreateTrackLocationRequest requests)
 	{
 		// Check if the location exists
-		var locationExists = await context.Locations.AnyAsync(l => l.Id == request.LocationId);
+		var locationExists = await context.Locations.AnyAsync(l => l.Id == requests.LocationId);
 		if (!locationExists)
-			throw new ArgumentException($"Location with ID {request.LocationId} does not exist.");
+			throw new ArgumentException($"Location with ID {requests.LocationId} does not exist.");
 
 		// Check if the user is already tracking this location
 		var existingTrackLocation = await context.TrackLocations
-			.FirstOrDefaultAsync(tl => tl.UserId == userId && tl.LocationId == request.LocationId);
+			.FirstOrDefaultAsync(tl => tl.UserId == userId && tl.LocationId == requests.LocationId);
 
 		if (existingTrackLocation != null)
 		{
 			throw new InvalidOperationException(
-				$"User is already tracking location with ID {request.LocationId}.");
+				$"User is already tracking location with ID {requests.LocationId}.");
 		}
 
-		var trackLocation = mapper.Map<TrackLocation>(request);
+		var trackLocation = mapper.Map<TrackLocation>(requests);
 		trackLocation.UserId = userId;
 
 		await context.TrackLocations.AddAsync(trackLocation);
@@ -51,19 +51,19 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 		return mapper.Map<TrackLocationDto>(trackLocationWithLocation);
 	}
 
-	public async Task<TrackLocationDto?> UpdateAsync(Guid userId, Guid locationId, TrackLocationRequest request)
+	public async Task<TrackLocationDto> UpdateAsync(Guid userId, Guid trackedLocationId, UpdateTrackLocationRequest requests)
 	{
 		var trackLocation = await context.TrackLocations
-			                    .FirstOrDefaultAsync(tl => tl.UserId == userId && tl.LocationId == locationId) ??
-		                    throw new ArgumentException($"Tracked location with location ID {locationId} not found for user ID {userId}.");
+			                    .FirstOrDefaultAsync(tl => tl.UserId == userId && tl.Id == trackedLocationId) ??
+		                    throw new ArgumentException($"Tracked location with ID {trackedLocationId} not found for user ID {userId}.");
 
 		// Update only the fields that are provided in the request
-		if (request.IsFavorite.HasValue)
-			trackLocation.isFavorite = request.IsFavorite.Value;
+		if (requests.IsFavorite.HasValue)
+			trackLocation.isFavorite = requests.IsFavorite.Value;
 		
 		
-		if (!string.IsNullOrEmpty(request.DisplayName))
-			trackLocation.DisplayName = request.DisplayName;
+		if (!string.IsNullOrEmpty(requests.DisplayName))
+			trackLocation.DisplayName = requests.DisplayName;
 		
 
 		await context.SaveChangesAsync();
@@ -76,12 +76,12 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 		return mapper.Map<TrackLocationDto>(updatedTrackLocation);
 	}
 
-	public async Task DeleteAsync(Guid userId, Guid locationId)
+	public async Task DeleteAsync(Guid userId, Guid trackedLocationId)
 	{
 		var trackLocation = await context.TrackLocations
-			.FirstOrDefaultAsync(tl => tl.UserId == userId && tl.LocationId == locationId);
+			.FirstOrDefaultAsync(tl => tl.UserId == userId && tl.Id == trackedLocationId);
 
-		if (trackLocation == null) throw new ArgumentException($"Failed to delete location with id {locationId}");
+		if (trackLocation == null) throw new ArgumentException($"Failed to delete Tracked Location with ID {trackedLocationId}");
 
 		context.TrackLocations.Remove(trackLocation);
 		await context.SaveChangesAsync();

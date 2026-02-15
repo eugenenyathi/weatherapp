@@ -20,6 +20,18 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddControllers(options =>
+{
+	options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+});
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("AllowFrontendOrigin",
+		policy => policy.WithOrigins("http://localhost:3000")
+			.AllowAnyHeader()
+			.AllowAnyMethod());
+});
+
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 // Register Location Service
@@ -48,6 +60,17 @@ builder.Services.AddFluentValidationAutoValidation();
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+	var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+	var requestPath = context.Request.Path;
+	var requestMethod = context.Request.Method;
+
+	logger.LogInformation("Incoming request: {Method} {Path}", requestMethod, requestPath);
+
+	await next();
+});
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -55,3 +78,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontendOrigin");
+app.UseRouting();
+app.MapControllers();
+app.Run();

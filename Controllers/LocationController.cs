@@ -6,7 +6,7 @@ using weatherapp.Requests;
 namespace weatherapp.Controllers;
 
 [ApiController]
-[Route("api/locations")]
+[Route("api/location")]
 public class LocationController(ILocationService locationService) : ControllerBase
 {
 	//Create a new location
