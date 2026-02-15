@@ -1,45 +1,56 @@
+'use client';
+
+import { useAuth } from './AuthContext';
+import { useCurrentDaySummaries } from './hooks/weatherHooks';
 import WeatherRow from './WeatherRow';
 
-interface SavedLocation {
-  id: string;
-  name: string;
-  lat: number;
-  lon: number;
-}
+const LocationsList = ({ onSelectLocation }: { onSelectLocation: (locationId: string, locationName: string) => void }) => {
+  const { user } = useAuth();
+  const { data: weatherSummaries, isLoading, error } = useCurrentDaySummaries(user?.id || '');
 
-interface LocationsListProps {
-  onSelectLocation: (locationId: string) => void;
-  savedLocations: SavedLocation[];
-}
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="text-center py-4">
+          <p>Loading weather data...</p>
+        </div>
+      </div>
+    );
+  }
 
-const LocationsList = ({ onSelectLocation, savedLocations }: LocationsListProps) => {
-  // Generate sample weather data for the saved locations
-  const locationsWithWeather = savedLocations.map((location, index) => ({
-    id: location.id,
-    name: location.name,
-    rain: `${Math.floor(Math.random() * 60)}%`, // Random rain percentage
-    maxTemp: `${Math.floor(15 + Math.random() * 15)}`, // Random max temp between 15-30
-    minTemp: `${Math.floor(5 + Math.random() * 10)}`  // Random min temp between 5-15
-  }));
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="text-center py-4">
+          <p className="text-red-500">Error loading weather data: {error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       {/* Location rows */}
       <div className="space-y-4">
-        {locationsWithWeather.map((location) => (
+        {weatherSummaries?.map((summary) => (
           <div
-            key={location.id}
-            onClick={() => onSelectLocation(location.id)}
+            key={summary.locationId}
+            onClick={() => onSelectLocation(summary.locationId, summary.locationName)}
             className="cursor-pointer"
           >
             <WeatherRow
-              day={location.name}
-              rain={location.rain}
-              maxTemp={location.maxTemp}
-              minTemp={location.minTemp}
+              day={summary.locationName}
+              rain={`${Math.round(summary.rain)}%`}
+              maxTemp={summary.maxTemp.toString()}
+              minTemp={summary.minTemp.toString()}
             />
           </div>
         ))}
+        {(!weatherSummaries || weatherSummaries.length === 0) && (
+          <div className="text-center py-4 text-gray-500">
+            <p>No locations tracked yet. Add a location to see weather forecasts.</p>
+          </div>
+        )}
       </div>
     </div>
   );

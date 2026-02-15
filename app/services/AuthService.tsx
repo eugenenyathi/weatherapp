@@ -1,6 +1,12 @@
 import axios from 'axios';
 
 // Interfaces for request and response payloads
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export interface RegisterRequest {
   name: string;
   email: string;
@@ -30,9 +36,9 @@ class AuthService {
     this.baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5243/api';
   }
 
-  async register(userData: RegisterRequest): Promise<AuthResponse> {
+  async register(userData: RegisterRequest): Promise<User> {
     try {
-      const response = await axios.post<AuthResponse>(
+      const response = await axios.post<User>(
         `${this.baseUrl}/auth/register`,
         userData,
         {
@@ -41,26 +47,21 @@ class AuthService {
           },
         }
       );
-
       return response.data;
     } catch (error: any) {
       if (error.response) {
-        // Server responded with error status
-        const errorMessage: ErrorResponse = error.response.data;
-        throw new Error(errorMessage.message || 'Registration failed');
+        throw new Error(error.response.data.message || 'Registration failed');
       } else if (error.request) {
-        // Request was made but no response received
         throw new Error('Network error: Unable to reach the server');
       } else {
-        // Something else happened
         throw new Error(error.message || 'An unexpected error occurred');
       }
     }
   }
 
-  async login(credentials: LoginRequest): Promise<AuthResponse> {
+  async login(credentials: LoginRequest): Promise<User> {
     try {
-      const response = await axios.post<AuthResponse>(
+      const response = await axios.post<User>(
         `${this.baseUrl}/auth/login`,
         credentials,
         {
@@ -69,18 +70,36 @@ class AuthService {
           },
         }
       );
-
       return response.data;
     } catch (error: any) {
       if (error.response) {
-        // Server responded with error status
-        const errorMessage: ErrorResponse = error.response.data;
-        throw new Error(errorMessage.message || 'Login failed');
+        throw new Error(error.response.data.message || 'Login failed');
       } else if (error.request) {
-        // Request was made but no response received
         throw new Error('Network error: Unable to reach the server');
       } else {
-        // Something else happened
+        throw new Error(error.message || 'An unexpected error occurred');
+      }
+    }
+  }
+
+  async update(userId: string, userData: { name?: string; email?: string; password?: string }): Promise<User> {
+    try {
+      const response = await axios.put<User>(
+        `${this.baseUrl}/auth/update/${userId}`,
+        userData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response) {
+        throw new Error(error.response.data.message || 'Update failed');
+      } else if (error.request) {
+        throw new Error('Network error: Unable to reach the server');
+      } else {
         throw new Error(error.message || 'An unexpected error occurred');
       }
     }

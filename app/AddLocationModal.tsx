@@ -1,18 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { useCreateLocation } from './hooks/locationHooks';
+import { useCreateTrackLocation } from './hooks/trackLocationHooks';
 
 interface Location {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  country: string;
-}
-
-interface SavedLocation {
   id: string;
   name: string;
   latitude: number;
@@ -24,19 +18,21 @@ interface AddLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddLocation: (location: Location) => void;
-  savedLocations: SavedLocation[];
-  onRemoveLocation: (id: string) => void;
+  userId: string;
 }
 
 const AddLocationModal = ({
   isOpen,
   onClose,
   onAddLocation,
-  savedLocations,
-  onRemoveLocation
+  userId
 }: AddLocationModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  
+  const createLocationMutation = useCreateLocation();
+  const createTrackLocationMutation = useCreateTrackLocation();
 
   // Fetch location suggestions from OpenWeatherMap API
   const { data: suggestions = [], isLoading } = useQuery({
@@ -72,9 +68,34 @@ const AddLocationModal = ({
     }
   }, [isOpen]);
 
-  const handleSelectLocation = (location: Location) => {
-    onAddLocation(location);
-    setSearchTerm('');
+  const handleSelectLocation = async (location: Location) => {
+    try {
+      // First, create the location in the backend
+      const createdLocation = await createLocationMutation.mutateAsync({
+        name: location.name,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        country: location.country
+      });
+
+      // Then, create a track location record for this user
+      await createTrackLocationMutation.mutateAsync({
+        userId,
+        trackLocationData: {
+          locationId: createdLocation.id,
+          displayName: createdLocation.name
+        }
+      });
+
+      // Invalidate and refetch the current day summaries to show the new location
+      queryClient.invalidateQueries({ queryKey: ['currentDaySummaries', userId] });
+
+      // Close the modal
+      onClose();
+    } catch (error) {
+      console.error('Error adding location:', error);
+      // Optionally show an error message to the user
+    }
   };
 
   if (!isOpen) return null;
@@ -100,16 +121,23 @@ const AddLocationModal = ({
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search for a city..."
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            disabled={createLocationMutation.isPending || createTrackLocationMutation.isPending}
           />
         </div>
 
-        {isLoading && (
+        {(createLocationMutation.isPending || createTrackLocationMutation.isPending) && (
           <div className="text-center py-4">
-            <p className="text-gray-700">Loading...</p>
+            <p className="text-gray-700">Adding location...</p>
           </div>
         )}
 
-        {!isLoading && suggestions.length > 0 && (
+        {!(createLocationMutation.isPending || createTrackLocationMutation.isPending) && isLoading && (
+          <div className="text-center py-4">
+            <p className="text-gray-700">Searching...</p>
+          </div>
+        )}
+
+        {!(createLocationMutation.isPending || createTrackLocationMutation.isPending) && !isLoading && suggestions.length > 0 && (
           <div className="border border-gray-200 rounded-md max-h-60 overflow-y-auto mb-4">
             {suggestions.map((location) => (
               <div
@@ -124,36 +152,23 @@ const AddLocationModal = ({
           </div>
         )}
 
-        {!isLoading && searchTerm && suggestions.length === 0 && (
+        {!(createLocationMutation.isPending || createTrackLocationMutation.isPending) && !isLoading && searchTerm && suggestions.length === 0 && (
           <div className="text-center py-4 text-gray-600 mb-4">
             No locations found
           </div>
         )}
 
-        {/* Display saved locations */}
-        <div>
-          <h3 className="font-medium text-gray-800 mb-2">Added Locations</h3>
-          {savedLocations.length === 0 ? (
-            <p className="text-gray-600 text-sm">No locations added yet</p>
-          ) : (
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {savedLocations.map((location) => (
-                <div
-                  key={location.id}
-                  className="flex justify-between items-center p-2 border border-gray-200 rounded-md"
-                >
-                  <span className="text-gray-700">{location.name}</span>
-                  <button
-                    onClick={() => onRemoveLocation(location.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {createLocationMutation.error && (
+          <div className="text-center py-2 text-red-500 text-sm">
+            Error: {createLocationMutation.error.message}
+          </div>
+        )}
+
+        {createTrackLocationMutation.error && (
+          <div className="text-center py-2 text-red-500 text-sm">
+            Error: {createTrackLocationMutation.error.message}
+          </div>
+        )}
       </div>
     </div>
   );
