@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useCurrentDaySummaries } from "./hooks/weatherHooks";
 import WeatherRow from "./WeatherRow";
 import { trackLocationService } from "./services";
+import EditModal from "./components/EditModal";
 
 const LocationsList = ({
   onSelectLocation,
@@ -21,6 +23,8 @@ const LocationsList = ({
     error,
     refetch, // Add refetch function
   } = useCurrentDaySummaries(user?.id || "");
+  
+  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
 
   if (isLoading) {
     return (
@@ -47,8 +51,8 @@ const LocationsList = ({
   // Filter locations based on active tab
   const filteredSummaries =
     activeTab === "favorites"
-      ? weatherSummaries?.filter((summary) => summary.isFavorite)
-      : weatherSummaries;
+      ? weatherSummaries?.filter((summary) => summary.isFavorite && !removingIds.has(summary.id))
+      : weatherSummaries?.filter((summary) => !removingIds.has(summary.id));
 
   const handleFavoriteClick = async (trackedLocationId: string) => {
     if (!user?.id || !trackedLocationId) return;
@@ -78,9 +82,69 @@ const LocationsList = ({
     refetch();
   };
 
-  const handleEditClick = (locationId: string, locationName: string) => {
-    // Placeholder for edit functionality
-    alert(`Edit functionality for ${locationName} would go here`);
+  const handleRemoveClick = async (trackedLocationId: string) => {
+    if (!user?.id || !trackedLocationId) return;
+
+    // Optimistically update the UI by adding the ID to the removing set
+    setRemovingIds(prev => new Set(prev).add(trackedLocationId));
+
+    try {
+      // Remove the tracked location
+      await trackLocationService.deleteTrackLocation(user.id, trackedLocationId);
+
+      // Refetch the data to update the UI permanently
+      refetch();
+    } catch (error) {
+      console.error('Error removing location:', error);
+      // If there's an error, remove the ID from the removing set
+      setRemovingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(trackedLocationId);
+        return newSet;
+      });
+    } finally {
+      // Remove the ID from the removing set after the API call completes
+      setRemovingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(trackedLocationId);
+        return newSet;
+      });
+    }
+  };
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<{ id: string; displayName: string } | null>(null);
+
+  const handleEditClick = (locationId: string, currentDisplayName: string) => {
+    setEditingLocation({ id: locationId, displayName: currentDisplayName });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSave = async (newDisplayName: string) => {
+    if (!editingLocation || !user?.id) return;
+
+    try {
+      // Update the tracked location with the new display name
+      await trackLocationService.updateTrackLocation(
+        user.id,
+        editingLocation.id,
+        { displayName: newDisplayName }
+      );
+
+      // Close the modal
+      setIsEditModalOpen(false);
+      setEditingLocation(null);
+
+      // Refetch the data to update the UI
+      refetch();
+    } catch (error) {
+      console.error('Error updating display name:', error);
+    }
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setEditingLocation(null);
   };
 
   return (
@@ -103,8 +167,10 @@ const LocationsList = ({
                 onSelectLocation(summary.locationId, summary.locationName)
               }
               onEditClick={() =>
-                handleEditClick(summary.locationId, summary.locationName)
+                handleEditClick(summary.id, summary.displayName || summary.locationName)
               }
+              onRemoveClick={(locationId) => handleRemoveClick(locationId)}
+              displayName={summary.displayName || summary.locationName}
             />
           </div>
         ))}
@@ -118,6 +184,14 @@ const LocationsList = ({
           </div>
         )}
       </div>
+      
+      {/* Edit Modal */}
+      <EditModal
+        isOpen={isEditModalOpen}
+        initialDisplayName={editingLocation?.displayName || ''}
+        onSave={handleEditSave}
+        onClose={handleEditModalClose}
+      />
     </div>
   );
 };

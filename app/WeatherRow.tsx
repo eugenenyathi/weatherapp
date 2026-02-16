@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { trackLocationService } from './services';
+import DropdownMenu from './components/DropdownMenu';
 
 interface WeatherRowProps {
   day: string;
@@ -14,6 +15,8 @@ interface WeatherRowProps {
   onHeartClick?: () => void;
   onViewMoreClick?: () => void;
   onEditClick?: () => void;
+  onRemoveClick?: (locationId: string) => void;
+  displayName?: string;
 }
 
 const WeatherRow = ({
@@ -29,6 +32,8 @@ const WeatherRow = ({
   onHeartClick,
   onViewMoreClick,
   onEditClick,
+  onRemoveClick,
+  displayName,
 }: WeatherRowProps) => {
   const [showMenu, setShowMenu] = useState(false);
 
@@ -73,6 +78,25 @@ const WeatherRow = ({
     setShowMenu(false);
   };
 
+  const handleRemoveClick = async () => {
+    if (!userId || !trackedLocationId) return;
+    
+    try {
+      // Remove the tracked location
+      await trackLocationService.deleteTrackLocation(userId, trackedLocationId);
+      
+      // Close the menu
+      setShowMenu(false);
+      
+      // Call the callback if provided
+      if (onRemoveClick) {
+        onRemoveClick(trackedLocationId);
+      }
+    } catch (error) {
+      console.error('Error removing location:', error);
+    }
+  };
+
   const handleEditClick = () => {
     if (onEditClick) {
       onEditClick();
@@ -84,9 +108,6 @@ const WeatherRow = ({
     setShowMenu(false);
   };
 
-  const toggleMenu = () => {
-    setShowMenu(!showMenu);
-  };
 
   return (
     <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
@@ -138,48 +159,46 @@ const WeatherRow = ({
             </button>
 
             {/* 3 dots menu */}
-            <div className="relative">
-              <button
-                onClick={toggleMenu}
-                className="p-1 rounded-full text-gray-400 hover:text-gray-600"
-                aria-label="More options"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
+            <DropdownMenu
+              trigger={
+                <button 
+                  className="p-1 rounded-full text-gray-400 hover:text-gray-600"
+                  aria-label="More options"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z"
-                  />
-                </svg>
-              </button>
-
-              {/* Dropdown menu */}
-              {showMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                  <div className="py-1">
-                    <button
-                      onClick={handleViewMoreClick}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      View More
-                    </button>
-                    <button
-                      onClick={handleEditClick}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z"
+                    />
+                  </svg>
+                </button>
+              }
+              items={[
+                {
+                  label: 'View More',
+                  onClick: handleViewMoreClick,
+                  variant: 'default'
+                },
+                {
+                  label: 'Remove',
+                  onClick: handleRemoveClick,
+                  variant: 'destructive'
+                },
+                {
+                  label: 'Edit',
+                  onClick: handleEditClick,
+                  variant: 'default'
+                }
+              ]}
+            />
           </div>
         )}
       </div>
