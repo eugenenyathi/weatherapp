@@ -17,14 +17,12 @@ interface Location {
 interface AddLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddLocation: (location: Location) => void;
   userId: string;
 }
 
 const AddLocationModal = ({
   isOpen,
   onClose,
-  onAddLocation,
   userId
 }: AddLocationModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');

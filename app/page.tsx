@@ -13,18 +13,14 @@ import LocationWarningModal from "./LocationWarningModal";
 // Create a client
 const queryClient = new QueryClient();
 
-interface Location {
-  id: string;
-  name: string;
-  country: string;
-  lat: number;
-  lon: number;
-}
-
 export default function Home() {
-  const [selectedLocation, setSelectedLocation] = useState<{ id: string; name: string } | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("favorites");
   const { isLoggedIn, user } = useAuth(); // Get the authentication status and user info
 
   const handleSelectLocation = (locationId: string, locationName: string) => {
@@ -44,11 +40,6 @@ export default function Home() {
       // If authenticated, open the location modal directly
       setIsModalOpen(true);
     }
-  };
-
-  const handleAddLocation = (location: Location) => {
-    // Add location directly since user has already acknowledged the warning
-    // This will now be handled by the backend
   };
 
   const handleConfirmAddLocation = () => {
@@ -76,9 +67,8 @@ export default function Home() {
         <Header onAddLocationClick={handleAddLocationClick} />
         <div className="flex items-center justify-center pt-24">
           {" "}
-          {/* Increased padding-top to account for fixed header with top-2 */}
           <div className="w-[70%]">
-            <Tabs defaultValue="all">
+            <Tabs defaultValue="favorites" value={activeTab} onTabChange={setActiveTab}>
               {selectedLocation ? (
                 <ForecastComponent
                   locationId={selectedLocation.id}
@@ -88,6 +78,8 @@ export default function Home() {
               ) : (
                 <LocationsList
                   onSelectLocation={handleSelectLocation}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab} // Pass the setActiveTab function to update the active tab
                 />
               )}
             </Tabs>
@@ -95,8 +87,7 @@ export default function Home() {
             <AddLocationModal
               isOpen={isModalOpen}
               onClose={handleCloseModal}
-              onAddLocation={handleAddLocation}
-              userId={user?.id || ''}
+              userId={user?.id || ""}
             />
 
             <LocationWarningModal

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 export interface Location {
   id: string;
@@ -19,8 +19,8 @@ class LocationService {
   private baseUrl: string;
 
   constructor() {
-    // Use the environment variable for the API base URL, fallback to a default
-    this.baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5243/api';
+    this.baseUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5243/api";
   }
 
   async createLocation(locationData: LocationRequest): Promise<Location> {
@@ -30,18 +30,20 @@ class LocationService {
         locationData,
         {
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
       return response.data;
     } catch (error: any) {
       if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to create location');
+        throw new Error(
+          error.response.data.message || "Failed to create location",
+        );
       } else if (error.request) {
-        throw new Error('Network error: Unable to reach the server');
+        throw new Error("Network error: Unable to reach the server");
       } else {
-        throw new Error(error.message || 'An unexpected error occurred');
+        throw new Error(error.message || "An unexpected error occurred");
       }
     }
   }
