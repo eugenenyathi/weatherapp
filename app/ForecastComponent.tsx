@@ -53,18 +53,18 @@ const ForecastComponent = ({ locationId, locationName, onBack }: ForecastCompone
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-800">{locationName} 5-Day Forecast</h2>
+    <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-2">
+        <h2 className="text-base md:text-lg font-bold text-gray-800">{locationName} 5-Day Forecast</h2>
         <button
           onClick={onBack}
-          className="text-gray-600 hover:text-gray-900"
+          className="text-gray-600 hover:text-gray-900 text-sm md:text-base"
         >
           ← Back
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {forecastData?.fiveDayForecasts.map((day, index) => (
           <WeatherRow
             key={index}

@@ -23,8 +23,10 @@ const LocationsList = ({
     error,
     refetch, // Add refetch function
   } = useCurrentDaySummaries(user?.id || "");
-  
+
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<{ id: string; displayName: string } | null>(null);
 
   if (isLoading) {
     return (
@@ -65,7 +67,7 @@ const LocationsList = ({
 
     // Determine the new favorite status
     const newFavoriteStatus = !currentSummary.isFavorite;
-    
+
     // Update the tracked location with the new favorite status
     await trackLocationService.updateTrackLocation(
       user.id,
@@ -112,9 +114,6 @@ const LocationsList = ({
     }
   };
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingLocation, setEditingLocation] = useState<{ id: string; displayName: string } | null>(null);
-
   const handleEditClick = (locationId: string, currentDisplayName: string) => {
     setEditingLocation({ id: locationId, displayName: currentDisplayName });
     setIsEditModalOpen(true);
@@ -148,9 +147,9 @@ const LocationsList = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
       {/* Location rows */}
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {filteredSummaries?.map((summary) => (
           <div key={summary.locationId} className="cursor-default">
             <WeatherRow
@@ -176,7 +175,7 @@ const LocationsList = ({
         ))}
         {(!filteredSummaries || filteredSummaries.length === 0) && (
           <div className="text-center py-4 text-gray-500">
-            <p>
+            <p className="text-sm md:text-base">
               {activeTab === "favorites"
                 ? "No favorite locations yet. Mark a location as favorite to see it here."
                 : "No locations tracked yet. Add a location to see weather forecasts."}

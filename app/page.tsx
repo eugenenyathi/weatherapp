@@ -65,9 +65,8 @@ export default function Home() {
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-gray-200">
         <Header onAddLocationClick={handleAddLocationClick} />
-        <div className="flex items-center justify-center pt-24">
-          {" "}
-          <div className="w-[70%]">
+        <div className="flex items-center justify-center pt-24 w-full px-4">
+          <div className="w-full max-w-4xl">
             <Tabs defaultValue="favorites" value={activeTab} onTabChange={setActiveTab}>
               {selectedLocation ? (
                 <ForecastComponent
