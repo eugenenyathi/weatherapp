@@ -6,5 +6,4 @@ public class HourWeatherDto
     public decimal TempMetric { get; set; }
     public decimal TempImperial { get; set; }
     public decimal Humidity { get; set; }
-    public LocationDto Location { get; set; }
 }

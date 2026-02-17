@@ -6,4 +6,5 @@ public interface IWeatherForecastService
 {
 	Task<List<LocationWeatherSummaryDto>> GetCurrentDaySummariesForAllTrackedLocationsAsync(Guid userId);
 	Task<LocationFiveDayForecastDto> GetFiveDayForecastForLocationAsync(Guid locationId, Guid userId);
+	Task<LocationHourlyForecastDto> GetHourlyForecastForLocationAsync(Guid locationId, Guid userId);
 }

@@ -34,23 +34,24 @@ public class LocationService(
 		await context.Locations.AddAsync(location);
 		await context.SaveChangesAsync();
 
-		// Enqueue a background job to fetch daily weather for the newly created location
-		var jobId = backgroundJobs.Enqueue(() => openWeatherService.GetLocationDailyWeather(location));
-		
-		// Store the job tracking in LocationJob entity
+		// Enqueue background jobs to fetch daily and hourly weather for the newly created location
+		var dailyJobId = backgroundJobs.Enqueue(() => openWeatherService.GetLocationDailyWeather(location));
+		var hourlyJobId = backgroundJobs.Enqueue(() => openWeatherService.GetLocationHourlyWeather(location));
+
+		// Store the job tracking in LocationJob entity for daily weather
 		var locationJob = new LocationJob
 		{
 			LocationId = location.Id,
-			JobId = jobId,
+			JobId = dailyJobId,
 			JobCreatedAt = DateTime.UtcNow,
 			Status = "Pending"
 		};
-		
+
 		await context.LocationJobs.AddAsync(locationJob);
 		await context.SaveChangesAsync();
 
-		// Enqueue a continuation job to update the status after the weather fetch completes
-		backgroundJobs.ContinueJobWith(jobId, () => UpdateLocationJobStatus(location.Id, jobId));
+		// Enqueue continuation jobs to update the status after the weather fetch completes
+		backgroundJobs.ContinueJobWith(dailyJobId, () => UpdateLocationJobStatus(location.Id, dailyJobId));
 
 		return mapper.Map<LocationDto>(location);
 	}

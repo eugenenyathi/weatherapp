@@ -35,11 +35,17 @@ public class OpenWeatherService(
             Humidity = h.Humidity,
         }).ToList();
 
-        // Cleanup existing hourly data for this location to keep the DB fresh
-        var existing = context.HourlyWeathers.Where(w => w.LocationId == location.Id);
-        context.HourlyWeathers.RemoveRange(existing);
+        // Prevent duplicate date-times for the same location
+        var hourlyDateTimes = hourlyEntities.Select(h => h.DateTime).ToList();
+
+        var existingHourly = context.HourlyWeathers
+            .Where(w => w.LocationId == location.Id &&
+                        hourlyDateTimes.Contains(w.DateTime));
+
+        context.HourlyWeathers.RemoveRange(existingHourly);
 
         await context.HourlyWeathers.AddRangeAsync(hourlyEntities);
+
         await context.SaveChangesAsync();
     }
 
@@ -104,13 +110,13 @@ public class OpenWeatherService(
 
         if (!locations.Any()) return;
 
-        // 2. Iterate and update each
+        // 2. Iterate and update each location with both daily and hourly weather
         foreach (var location in locations)
         {
             try
             {
-                // Reusing the method you've already refined
                 await GetLocationDailyWeather(location);
+                await GetLocationHourlyWeather(location);
             }
             catch (Exception ex)
             {
@@ -131,12 +137,13 @@ public class OpenWeatherService(
 
         if (!trackedLocations.Any()) return;
 
-        // 2. Iterate and update each location
+        // 2. Iterate and update each location with both daily and hourly weather
         foreach (var location in trackedLocations)
         {
             try
             {
                 await GetLocationDailyWeather(location);
+                await GetLocationHourlyWeather(location);
             }
             catch (Exception ex)
             {

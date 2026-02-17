@@ -124,4 +124,58 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 			}).ToList()
 		};
 	}
+
+	public async Task<LocationHourlyForecastDto> GetHourlyForecastForLocationAsync(Guid locationId, Guid userId)
+	{
+		var preference = await context.UserPreferences
+			.FirstOrDefaultAsync(p => p.UserId == userId);
+
+		var unit = preference?.PreferredUnit ?? Unit.Metric; // Default to Metric
+		var now = DateTime.UtcNow;
+
+		// Check if the user is tracking this location
+		var isTracking = await context.TrackLocations
+			.AnyAsync(tl => tl.LocationId == locationId && tl.UserId == userId);
+
+		if (!isTracking)
+		{
+			throw new UnauthorizedAccessException("User is not authorized to access this location's forecast.");
+		}
+
+		// Check if there's a pending location job and wait for it
+		var hasPendingLocationJob = await context.LocationJobs
+			.AnyAsync(lj => lj.LocationId == locationId && (lj.Status == "Pending" || lj.Status == "Processing"));
+
+		if (hasPendingLocationJob)
+		{
+			await locationService.WaitForLocationWeatherDataAsync(locationId);
+		}
+
+		// Fetch the location with its hourly forecast (next 24 hours)
+		var location = await context.Locations
+			.Where(l => l.Id == locationId)
+			.Include(l => l.HourlyWeathers
+				.Where(hw => hw.DateTime >= now && hw.DateTime <= now.AddHours(24))
+				.OrderBy(hw => hw.DateTime))
+			.FirstOrDefaultAsync();
+
+		if (location == null)
+		{
+			throw new ArgumentException("Location not found.");
+		}
+
+		return new LocationHourlyForecastDto
+		{
+			LocationId = location.Id,
+			LocationName = location.Name,
+			Unit = unit,
+			HourlyForecasts = location.HourlyWeathers.Select(hw => new HourWeatherDto
+			{
+				DateTime = hw.DateTime,
+				TempMetric = hw.TempMetric,
+				TempImperial = hw.TempImperial,
+				Humidity = hw.Humidity
+			}).ToList()
+		};
+	}
 }

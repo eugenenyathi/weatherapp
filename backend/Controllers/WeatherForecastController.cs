@@ -22,4 +22,11 @@ public class WeatherForecastController(IWeatherForecastService weatherForecastSe
         var forecast = await weatherForecastService.GetFiveDayForecastForLocationAsync(locationId, userId);
         return Ok(forecast);
     }
+
+    [HttpGet("hourly-forecast/{locationId}/{userId}")]
+    public async Task<ActionResult<LocationHourlyForecastDto>> GetHourlyForecastForLocation(Guid locationId, Guid userId)
+    {
+        var forecast = await weatherForecastService.GetHourlyForecastForLocationAsync(locationId, userId);
+        return Ok(forecast);
+    }
 }

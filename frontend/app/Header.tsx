@@ -2,51 +2,109 @@
 
 import { useAuth } from "./AuthContext";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Sun, RefreshCw, MapPinPlus, User, Settings, LogOut } from "lucide-react";
 
 interface HeaderProps {
   onAddLocationClick: () => void;
+  onRefreshClick?: () => void;
 }
 
-const Header = ({ onAddLocationClick }: HeaderProps) => {
+const Header = ({ onAddLocationClick, onRefreshClick }: HeaderProps) => {
   const { isLoggedIn, user, logout } = useAuth();
   const router = useRouter();
 
   const handleAddLocationButtonClick = () => {
-    // Call the parent function which will handle showing the warning if needed
     onAddLocationClick();
   };
 
-  const handleUserIconClick = () => {
-    if (isLoggedIn) {
-      // Log out the user
-      logout();
-      router.push("/"); // Redirect to home after logout
-    } else {
-      // Navigate to login page
-      router.push("/login");
-    }
+  const handlePreferencesClick = () => {
+    router.push("/preferences");
+  };
+
+  const handleLogoutClick = () => {
+    logout();
+    router.push("/");
   };
 
   return (
     <div className="fixed top-2 left-1/2 transform -translate-x-1/2 w-full max-w-4xl z-10 flex items-center justify-between py-4 px-4">
       <div className="flex items-center space-x-2">
-        {/* Weather icon - using a sun icon as placeholder */}
-        <div className="text-xl md:text-2xl lg:text-4xl">☀️</div>
+        <Sun className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 text-yellow-500" />
         <h1 className="text-lg md:text-xl lg:text-4xl font-bold text-black">Weather</h1>
       </div>
       <div className="flex items-center space-x-2 md:space-x-4">
-        <button
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-xs md:text-sm font-medium transition-all bg-gray-100 text-gray-500 hover:bg-gray-200"
+        {/* Refresh button - hidden on mobile, shown on larger screens */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="hidden md:inline-flex"
+          onClick={onRefreshClick}
+          title="Refresh"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </Button>
+        {/* Refresh icon - shown only on mobile */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="md:hidden"
+          onClick={onRefreshClick}
+          title="Refresh"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </Button>
+        {/* Add Location button - shown only on larger screens */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="hidden md:inline-flex"
           onClick={handleAddLocationButtonClick}
         >
+          <MapPinPlus className="w-4 h-4 mr-2" />
           Add Location
-        </button>
-        <button
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-xs md:text-sm font-medium transition-all bg-gray-100 text-gray-500 hover:bg-gray-200"
-          onClick={handleUserIconClick}
+        </Button>
+        {/* Add Location icon - shown only on mobile */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="md:hidden"
+          onClick={handleAddLocationButtonClick}
+          title="Add Location"
         >
-          {isLoggedIn ? `Logout ${user?.name || ""}` : "👤"}
-        </button>
+          <MapPinPlus className="w-4 h-4" />
+        </Button>
+        {/* User dropdown - shown on all screens */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              {isLoggedIn ? (
+                <>
+                  <User className="w-4 h-4 mr-2" />
+                  {user?.name}
+                </>
+              ) : (
+                <User className="w-4 h-4" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem onClick={handlePreferencesClick}>
+              <Settings className="w-4 h-4 mr-2" />
+              Preferences
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogoutClick}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

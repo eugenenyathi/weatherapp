@@ -194,6 +194,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
 			entity.Property(e => e.UpdatedAt)
 				.IsRequired();
+
+			entity.HasOne(e => e.Location)
+				.WithMany(l => l.HourlyWeathers)
+				.HasForeignKey(e => e.LocationId);
 		});
 
 		modelBuilder.Entity<LocationJob>(entity =>
