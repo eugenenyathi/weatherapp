@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "weatherapp", "weatherapp\weatherapp.csproj", "{7A6F6E03-3479-441B-96BE-F7806AAA195C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "weatherapp", "backend\weatherapp.csproj", "{7A6F6E03-3479-441B-96BE-F7806AAA195C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

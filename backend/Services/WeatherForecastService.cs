@@ -6,9 +6,8 @@ using weatherapp.Services.Interfaces;
 
 namespace weatherapp.Services;
 
-public class WeatherForecastService(AppDbContext context): IWeatherForecastService
+public class WeatherForecastService(AppDbContext context, ILocationService locationService) : IWeatherForecastService
 {
-
 	public async Task<List<LocationWeatherSummaryDto>> GetCurrentDaySummariesForAllTrackedLocationsAsync(Guid userId)
 	{
 		var preference = await context.UserPreferences
@@ -21,24 +20,46 @@ public class WeatherForecastService(AppDbContext context): IWeatherForecastServi
 		var trackedLocations = await context.TrackLocations
 			.Include(tl => tl.Location)
 			.ThenInclude(l => l.DailyWeathers.Where(dw => dw.Date == today))
+			.Include(tl => tl.Location.LocationJobs.Where(lj =>  lj.Status == "Pending" || lj.Status == "Processing"))
+			.Where(tl => tl.UserId == userId)
+			.ToListAsync();
+
+		// Wait for any pending background jobs for these locations
+		var pendingJobLocations = trackedLocations
+			.Where(tl => tl.Location.LocationJobs.Any(lj => lj.Status is "Pending" or "Processing"))
+			.Select(tl => tl.LocationId)
+			.Distinct()
+			.ToList();
+
+		foreach (var locationId in pendingJobLocations)
+		{
+			await locationService.WaitForLocationWeatherDataAsync(locationId);
+		}
+
+		// Re-fetch to get updated weather data after jobs complete
+		trackedLocations = await context.TrackLocations
+			.Include(tl => tl.Location)
+			.ThenInclude(l => l.DailyWeathers.Where(dw => dw.Date == today))
 			.Where(tl => tl.UserId == userId)
 			.ToListAsync();
 
 		// Map to DTOs with current day summaries
-		return trackedLocations.Select(tl => 
+		return trackedLocations.Select(tl =>
 		{
 			var currentDayWeather = tl.Location.DailyWeathers.FirstOrDefault(dw => dw.Date == today);
-			
+
 			return new LocationWeatherSummaryDto
 			{
+				Id = tl.Id,
 				LocationId = tl.LocationId,
 				LocationName = tl.DisplayName ?? tl.Location.Name,
 				Date = today,
-				MinTemp = currentDayWeather != null 
-					? (unit == Unit.Metric ? currentDayWeather.MinTempMetric : currentDayWeather.MinTempImperial) 
+				isFavorite = tl.isFavorite,
+				MinTemp = currentDayWeather != null
+					? (unit == Unit.Metric ? currentDayWeather.MinTempMetric : currentDayWeather.MinTempImperial)
 					: 0,
-				MaxTemp = currentDayWeather != null 
-					? (unit == Unit.Metric ? currentDayWeather.MaxTempMetric : currentDayWeather.MaxTempImperial) 
+				MaxTemp = currentDayWeather != null
+					? (unit == Unit.Metric ? currentDayWeather.MaxTempMetric : currentDayWeather.MaxTempImperial)
 					: 0,
 				Rain = currentDayWeather?.Rain ?? 0,
 				Unit = unit
@@ -61,6 +82,15 @@ public class WeatherForecastService(AppDbContext context): IWeatherForecastServi
 		if (!isTracking)
 		{
 			throw new UnauthorizedAccessException("User is not authorized to access this location's forecast.");
+		}
+
+		// Check if there's a pending job and wait for it
+		var hasPendingJob = await context.LocationJobs.AnyAsync(lj =>
+			lj.LocationId == locationId && lj.Status == "Pending" || lj.Status == "Processing");
+
+		if (hasPendingJob)
+		{
+			await locationService.WaitForLocationWeatherDataAsync(locationId);
 		}
 
 		// Fetch the location with its 5-day forecast (including current day)

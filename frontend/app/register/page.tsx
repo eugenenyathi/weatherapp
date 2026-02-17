@@ -3,10 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authService, RegisterRequest } from '../AuthService';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from '../AuthContext';
+import { useRegister } from '../hooks/authHooks';
 
-export default function Register() {
+// Create a client for this page
+const queryClient = new QueryClient();
+
+function RegisterPageContent() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,23 +18,22 @@ export default function Register() {
   const router = useRouter();
   const { login } = useAuth();
 
+  const registerMutation = useRegister();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
-      // Prepare the registration data
-      const userData: RegisterRequest = {
+      // Call the register API
+      const response = await registerMutation.mutateAsync({
         name,
         email,
         password
-      };
+      });
 
-      // Call the register API
-      const response = await authService.register(userData);
-      
       // Login the user using the auth context
       login(response);
-      
+
       // Redirect to home page
       router.push('/');
     } catch (err: any) {
@@ -48,6 +51,11 @@ export default function Register() {
             {error}
           </div>
         )}
+        {registerMutation.isPending && (
+          <div className="mb-3 p-2 bg-blue-100 text-blue-700 rounded text-sm text-center">
+            Registering...
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label htmlFor="name" className="block text-gray-700 mb-1">Name</label>
@@ -56,8 +64,9 @@ export default function Register() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm text-black"
               required
+              disabled={registerMutation.isPending}
             />
           </div>
           <div className="mb-3">
@@ -67,8 +76,9 @@ export default function Register() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm text-black"
               required
+              disabled={registerMutation.isPending}
             />
           </div>
           <div className="mb-4">
@@ -78,15 +88,21 @@ export default function Register() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm text-black"
               required
+              disabled={registerMutation.isPending}
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-1.5 px-3 rounded text-sm hover:bg-blue-600 transition-colors"
+            className={`w-full py-1.5 px-3 rounded text-sm transition-colors ${
+              registerMutation.isPending 
+                ? 'bg-blue-400 cursor-not-allowed' 
+                : 'bg-blue-500 hover:bg-blue-600'
+            } text-white`}
+            disabled={registerMutation.isPending}
           >
-            Register
+            {registerMutation.isPending ? 'Registering...' : 'Register'}
           </button>
         </form>
         <div className="mt-3 text-center">
@@ -104,5 +120,13 @@ export default function Register() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Register() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RegisterPageContent />
+    </QueryClientProvider>
   );
 }

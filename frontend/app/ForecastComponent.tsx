@@ -1,47 +1,81 @@
+'use client';
+
+import { useAuth } from './AuthContext';
+import { useFiveDayForecast } from './hooks/weatherHooks';
 import WeatherRow from './WeatherRow';
 
-interface ForecastDay {
-  day: string;
-  rain: string;
-  maxTemp: string;
-  minTemp: string;
-}
-
 interface ForecastComponentProps {
+  locationId: string;
   locationName: string;
   onBack: () => void;
 }
 
-const ForecastComponent = ({ locationName, onBack }: ForecastComponentProps) => {
-  // Sample forecast data for the next 5 days
-  const forecast: ForecastDay[] = [
-    { day: 'Today', rain: '20%', maxTemp: '25', minTemp: '15' },
-    { day: 'Tomorrow', rain: '10%', maxTemp: '22', minTemp: '12' },
-    { day: 'Monday', rain: '5%', maxTemp: '24', minTemp: '14' },
-    { day: 'Tuesday', rain: '60%', maxTemp: '19', minTemp: '10' },
-    { day: 'Wednesday', rain: '30%', maxTemp: '21', minTemp: '13' },
-  ];
+const ForecastComponent = ({ locationId, locationName, onBack }: ForecastComponentProps) => {
+  const { user } = useAuth();
+  const { data: forecastData, isLoading, error } = useFiveDayForecast(locationId, user?.id || '');
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-800">{locationName} 5-Day Forecast</h2>
+          <button
+            onClick={onBack}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            ← Back
+          </button>
+        </div>
+        <div className="text-center py-4">
+          <p>Loading forecast...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-800">{locationName} 5-Day Forecast</h2>
+          <button
+            onClick={onBack}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            ← Back
+          </button>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-red-500">Error loading forecast: {error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-800">{locationName} 5-Day Forecast</h2>
-        <button 
+    <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-2">
+        <h2 className="text-base md:text-lg font-bold text-gray-800">{locationName} 5-Day Forecast</h2>
+        <button
           onClick={onBack}
-          className="text-gray-600 hover:text-gray-900"
+          className="text-gray-600 hover:text-gray-900 text-sm md:text-base"
         >
           ← Back
         </button>
       </div>
-      
-      <div className="space-y-4">
-        {forecast.map((day, index) => (
-          <WeatherRow 
+
+      <div className="space-y-3 md:space-y-4">
+        {forecastData?.fiveDayForecasts.map((day, index) => (
+          <WeatherRow
             key={index}
-            day={day.day} 
-            rain={day.rain} 
-            maxTemp={day.maxTemp} 
-            minTemp={day.minTemp} 
+            day={day.date} // Using the date from the API
+            rain={`${Math.round(day.rain)}%`}
+            maxTemp={day.maxTemp.toString()}
+            minTemp={day.minTemp.toString()}
+            locationId={locationId}
+            isFavorite={false} // Default to false for forecast days
+            userId={user?.id}
+            showActions={false} // Don't show heart and 3 dots menu in forecast
           />
         ))}
       </div>

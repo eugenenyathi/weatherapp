@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 	public DbSet<DayWeather> DailyWeathers { get; set; }
 	public DbSet<HourWeather> HourlyWeathers { get; set; }
 	public DbSet<User> Users { get; set; }
+	public DbSet<LocationJob> LocationJobs { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -177,7 +178,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 			entity.Property(e => e.TempMetric)
 				.HasColumnType("decimal(5,2)")
 				.IsRequired();
-			
+
 			entity.Property(e => e.TempImperial)
 				.HasColumnType("decimal(5,2)")
 				.IsRequired();
@@ -187,6 +188,33 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 				.IsRequired();
 
 			// Configure timestamps
+			entity.Property(e => e.CreatedAt)
+				.IsRequired();
+
+			entity.Property(e => e.UpdatedAt)
+				.IsRequired();
+		});
+
+		modelBuilder.Entity<LocationJob>(entity =>
+		{
+			entity.HasKey(e => e.Id);
+
+			entity.HasOne(lj => lj.Location)
+				.WithMany(l => l.LocationJobs)
+				.HasForeignKey(lj => lj.LocationId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			entity.Property(e => e.JobId)
+				.IsRequired()
+				.HasMaxLength(100);
+
+			entity.Property(e => e.JobCreatedAt)
+				.IsRequired();
+
+			entity.Property(e => e.Status)
+				.IsRequired()
+				.HasMaxLength(50);
+
 			entity.Property(e => e.CreatedAt)
 				.IsRequired();
 

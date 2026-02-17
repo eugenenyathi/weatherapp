@@ -37,7 +37,7 @@ builder.Services.AddControllers(options =>
 	options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
 }).AddJsonOptions(options =>
 {
-	options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 builder.Services.AddCors(options =>
 {

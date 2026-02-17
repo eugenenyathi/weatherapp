@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\eugen\\RiderProjects\\weatherapp\\weatherapp\\weatherapp.csproj": {}
+    "C:\\Users\\eugen\\RiderProjects\\weatherapp\\backend\\weatherapp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\eugen\\RiderProjects\\weatherapp\\weatherapp\\weatherapp.csproj": {
+    "C:\\Users\\eugen\\RiderProjects\\weatherapp\\backend\\weatherapp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\eugen\\RiderProjects\\weatherapp\\weatherapp\\weatherapp.csproj",
+        "projectUniqueName": "C:\\Users\\eugen\\RiderProjects\\weatherapp\\backend\\weatherapp.csproj",
         "projectName": "weatherapp",
-        "projectPath": "C:\\Users\\eugen\\RiderProjects\\weatherapp\\weatherapp\\weatherapp.csproj",
+        "projectPath": "C:\\Users\\eugen\\RiderProjects\\weatherapp\\backend\\weatherapp.csproj",
         "packagesPath": "C:\\Users\\eugen\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\eugen\\RiderProjects\\weatherapp\\weatherapp\\obj\\",
+        "outputPath": "C:\\Users\\eugen\\RiderProjects\\weatherapp\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

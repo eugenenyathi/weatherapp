@@ -1,18 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { useCreateLocation } from './hooks/locationHooks';
+import { useCreateTrackLocation } from './hooks/trackLocationHooks';
 
 interface Location {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  country: string;
-}
-
-interface SavedLocation {
   id: string;
   name: string;
   latitude: number;
@@ -23,23 +17,24 @@ interface SavedLocation {
 interface AddLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddLocation: (location: Location) => void;
-  savedLocations: SavedLocation[];
-  onRemoveLocation: (id: string) => void;
+  userId: string;
 }
 
 const AddLocationModal = ({
   isOpen,
   onClose,
-  onAddLocation,
-  savedLocations,
-  onRemoveLocation
+  userId
 }: AddLocationModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  const createLocationMutation = useCreateLocation();
+  const createTrackLocationMutation = useCreateTrackLocation();
 
   // Fetch location suggestions from OpenWeatherMap API
-  const { data: suggestions = [], isLoading } = useQuery({
+  const { data: suggestions = [], isLoading, error: geocodingError } = useQuery({
     queryKey: ['geocoding', searchTerm],
     queryFn: async () => {
       if (!searchTerm.trim()) return [];
@@ -60,6 +55,7 @@ const AddLocationModal = ({
     },
     enabled: !!searchTerm.trim(), // Only run the query if searchTerm is not empty
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: 2, // Retry failed requests up to 2 times
   });
 
   // Focus the input when the modal opens
@@ -72,21 +68,53 @@ const AddLocationModal = ({
     }
   }, [isOpen]);
 
-  const handleSelectLocation = (location: Location) => {
-    onAddLocation(location);
-    setSearchTerm('');
+  const handleSelectLocation = async (location: Location) => {
+    try {
+      setIsRefreshing(true);
+
+      // First, create the location in the backend
+      const createdLocation = await createLocationMutation.mutateAsync({
+        name: location.name,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        country: location.country
+      });
+
+      // Then, create a track location record for this user
+      await createTrackLocationMutation.mutateAsync({
+        userId,
+        trackLocationData: {
+          locationId: createdLocation.id,
+          displayName: createdLocation.name
+        }
+      });
+
+      // Refetch current day summaries to get the new location with weather data
+      await queryClient.refetchQueries({ 
+        queryKey: ['currentDaySummaries', userId],
+        type: 'active'
+      });
+
+      setIsRefreshing(false);
+
+      // Close the modal
+      onClose();
+    } catch (error) {
+      console.error('Error adding location:', error);
+      setIsRefreshing(false);
+    }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-white bg-opacity-60 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+    <div className="fixed inset-0 bg-white bg-opacity-60 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-4 md:p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800">Add Location</h2>
+          <h2 className="text-lg md:text-xl font-bold text-gray-800">Add Location</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 text-lg"
           >
             ✕
           </button>
@@ -99,61 +127,67 @@ const AddLocationModal = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search for a city..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            disabled={createLocationMutation.isPending || createTrackLocationMutation.isPending}
           />
         </div>
 
-        {isLoading && (
+        {(createLocationMutation.isPending || createTrackLocationMutation.isPending) && (
           <div className="text-center py-4">
-            <p className="text-gray-700">Loading...</p>
+            <p className="text-gray-700 text-sm md:text-base">Adding location...</p>
           </div>
         )}
 
-        {!isLoading && suggestions.length > 0 && (
-          <div className="border border-gray-200 rounded-md max-h-60 overflow-y-auto mb-4">
+        {isRefreshing && (
+          <div className="text-center py-4">
+            <p className="text-gray-700 text-sm md:text-base">Refreshing weather data...</p>
+          </div>
+        )}
+
+        {!(createLocationMutation.isPending || createTrackLocationMutation.isPending) && !isRefreshing && isLoading && (
+          <div className="text-center py-4">
+            <p className="text-gray-700 text-sm md:text-base">Searching...</p>
+          </div>
+        )}
+
+        {!(createLocationMutation.isPending || createTrackLocationMutation.isPending) && !isRefreshing && !isLoading && suggestions.length > 0 && (
+          <div className="border border-gray-200 rounded-md max-h-48 md:max-h-60 overflow-y-auto mb-4">
             {suggestions.map((location) => (
               <div
                 key={location.id}
-                className="p-3 border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+                className="p-2 md:p-3 border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
                 onClick={() => handleSelectLocation(location)}
               >
-                <div className="font-medium text-gray-800">{location.name}</div>
-                <div className="text-sm text-gray-600">{location.country}</div>
+                <div className="font-medium text-gray-800 text-sm md:text-base">{location.name}</div>
+                <div className="text-xs md:text-sm text-gray-600">{location.country}</div>
               </div>
             ))}
           </div>
         )}
 
-        {!isLoading && searchTerm && suggestions.length === 0 && (
+        {!(createLocationMutation.isPending || createTrackLocationMutation.isPending) && !isRefreshing && !isLoading && searchTerm && suggestions.length === 0 && (
           <div className="text-center py-4 text-gray-600 mb-4">
-            No locations found
+            <p className="text-sm md:text-base">No locations found</p>
           </div>
         )}
 
-        {/* Display saved locations */}
-        <div>
-          <h3 className="font-medium text-gray-800 mb-2">Added Locations</h3>
-          {savedLocations.length === 0 ? (
-            <p className="text-gray-600 text-sm">No locations added yet</p>
-          ) : (
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {savedLocations.map((location) => (
-                <div
-                  key={location.id}
-                  className="flex justify-between items-center p-2 border border-gray-200 rounded-md"
-                >
-                  <span className="text-gray-700">{location.name}</span>
-                  <button
-                    onClick={() => onRemoveLocation(location.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {geocodingError && !isRefreshing && (
+          <div className="text-center py-2 text-red-500 text-xs md:text-sm">
+            Error searching locations: {geocodingError.message}
+          </div>
+        )}
+
+        {createLocationMutation.error && (
+          <div className="text-center py-2 text-red-500 text-xs md:text-sm">
+            Error: {createLocationMutation.error.message}
+          </div>
+        )}
+
+        {createTrackLocationMutation.error && (
+          <div className="text-center py-2 text-red-500 text-xs md:text-sm">
+            Error: {createTrackLocationMutation.error.message}
+          </div>
+        )}
       </div>
     </div>
   );
