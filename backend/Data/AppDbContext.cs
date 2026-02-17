@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 	public DbSet<HourWeather> HourlyWeathers { get; set; }
 	public DbSet<User> Users { get; set; }
 	public DbSet<LocationJob> LocationJobs { get; set; }
+	public DbSet<LocationSyncSchedule> LocationSyncSchedules { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -220,6 +221,41 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
 			entity.Property(e => e.UpdatedAt)
 				.IsRequired();
+		});
+
+		modelBuilder.Entity<LocationSyncSchedule>(entity =>
+		{
+			entity.HasKey(e => e.Id);
+
+			entity.HasOne(lss => lss.User)
+				.WithMany()
+				.HasForeignKey(lss => lss.UserId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasOne(lss => lss.Location)
+				.WithMany()
+				.HasForeignKey(lss => lss.LocationId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			entity.Property(e => e.RecurringJobId)
+				.IsRequired()
+				.HasMaxLength(200);
+
+			entity.Property(e => e.LastSyncAt)
+				.IsRequired();
+
+			entity.Property(e => e.NextSyncAt)
+				.IsRequired();
+
+			entity.Property(e => e.CreatedAt)
+				.IsRequired();
+
+			entity.Property(e => e.UpdatedAt)
+				.IsRequired();
+
+			// Unique constraint for user-location pair
+			entity.HasIndex(e => new { e.UserId, e.LocationId })
+				.IsUnique();
 		});
 	}
 }

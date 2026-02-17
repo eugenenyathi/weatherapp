@@ -55,6 +55,8 @@ builder.Services.AddScoped<ITrackLocationService, TrackLocationService>();
 builder.Services.AddScoped<IUserPreferenceService, UserPreferenceService>();
 builder.Services.AddScoped<IOpenWeatherService, OpenWeatherService>();
 builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
+builder.Services.AddScoped<ISyncScheduleService, SyncScheduleService>();
+builder.Services.AddScoped<IGlobalSyncService, GlobalSyncService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddHttpClient<IOpenWeatherMapHttpClient, OpenWeatherMapHttpClient>(client =>
@@ -66,7 +68,6 @@ builder.Services.AddHttpClient<IOpenWeatherMapHttpClient, OpenWeatherMapHttpClie
 		new MediaTypeWithQualityHeaderValue("application/json"));
 });
 
-// Register WeatherForecast Service
 
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
@@ -74,6 +75,16 @@ builder.Services.AddFluentValidationAutoValidation();
 
 
 var app = builder.Build();
+
+// Initialize global sync recurring job and user sync schedules at startup
+using (var scope = app.Services.CreateScope())
+{
+	var globalSyncService = scope.ServiceProvider.GetRequiredService<IGlobalSyncService>();
+	await globalSyncService.InitializeGlobalSyncAsync();
+
+	var syncScheduleService = scope.ServiceProvider.GetRequiredService<ISyncScheduleService>();
+	await syncScheduleService.InitializeAllUserSyncSchedulesAsync();
+}
 
 app.Use(async (context, next) =>
 {

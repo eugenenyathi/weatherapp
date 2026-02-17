@@ -10,7 +10,7 @@ using weatherapp.Services.Interfaces;
 
 namespace weatherapp.Services;
 
-public class UserPreferenceService(AppDbContext context, IMapper mapper) : IUserPreferenceService
+public class UserPreferenceService(AppDbContext context, IMapper mapper, ISyncScheduleService syncScheduleService) : IUserPreferenceService
 {
 
 	public async Task<UserPreferenceDto?> GetByUserIdAsync(Guid userId)
@@ -40,25 +40,40 @@ public class UserPreferenceService(AppDbContext context, IMapper mapper) : IUser
 		await context.UserPreferences.AddAsync(userPreference);
 		await context.SaveChangesAsync();
 
+		// Initialize sync schedules for user's tracked locations
+		await syncScheduleService.InitializeSyncSchedulesForUserAsync(userId, userPreference.RefreshInterval);
+
 		return mapper.Map<UserPreferenceDto>(userPreference);
 	}
 
 	public async Task<UserPreferenceDto> UpdateAsync(Guid userId, Guid preferenceId, UserPreferenceRequest request)
 	{
 		var userPreference = await context.UserPreferences
-			.FirstOrDefaultAsync(up => up.UserId == userId && up.Id == preferenceId) 
+			.FirstOrDefaultAsync(up => up.UserId == userId && up.Id == preferenceId)
 			?? throw new NotFoundException($"User preference not found for user ID {userId} and preference ID {preferenceId}.");
+
+		var intervalChanged = false;
+		int oldInterval = userPreference.RefreshInterval;
 
 		// Update only the fields that are provided in the request
 		if (request.PreferredUnit.HasValue)
 			userPreference.PreferredUnit = request.PreferredUnit.Value;
 
 		if (request.RefreshInterval.HasValue)
+		{
+			intervalChanged = userPreference.RefreshInterval != request.RefreshInterval.Value;
 			userPreference.RefreshInterval = request.RefreshInterval.Value;
+		}
 
 		userPreference.UpdatedAt = DateTime.UtcNow;
 
 		await context.SaveChangesAsync();
+
+		// Update sync schedules if refresh interval changed
+		if (intervalChanged)
+		{
+			await syncScheduleService.UpdateSyncSchedulesForUserAsync(userId, userPreference.RefreshInterval);
+		}
 
 		return mapper.Map<UserPreferenceDto>(userPreference);
 	}
@@ -68,8 +83,11 @@ public class UserPreferenceService(AppDbContext context, IMapper mapper) : IUser
 		var userPreference = await context.UserPreferences
 			.FirstOrDefaultAsync(up => up.UserId == userId && up.Id == preferenceId);
 
-		if (userPreference == null) 
+		if (userPreference == null)
 			throw new NotFoundException($"Failed to delete User Preference with ID {preferenceId} for user {userId}");
+
+		// Remove sync schedules for this user
+		await syncScheduleService.RemoveSyncSchedulesForUserAsync(userId);
 
 		context.UserPreferences.Remove(userPreference);
 		await context.SaveChangesAsync();

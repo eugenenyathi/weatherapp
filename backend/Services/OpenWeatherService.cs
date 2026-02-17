@@ -120,6 +120,31 @@ public class OpenWeatherService(
         }
     }
 
+    public async Task SyncWeatherForUserTrackedLocationsAsync(Guid userId)
+    {
+        // 1. Get all locations that this user is tracking
+        var trackedLocations = await context.TrackLocations
+            .Include(tl => tl.Location)
+            .Where(tl => tl.UserId == userId)
+            .Select(tl => tl.Location)
+            .ToListAsync();
+
+        if (!trackedLocations.Any()) return;
+
+        // 2. Iterate and update each location
+        foreach (var location in trackedLocations)
+        {
+            try
+            {
+                await GetLocationDailyWeather(location);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to sync weather for {location.Name} (User {userId}): {ex.Message}");
+            }
+        }
+    }
+
     private string GetApiKey()
     {
         return configuration["OpenWeatherAPIKey"] ?? throw new ArgumentNullException("OpenWeatherAPIKey");

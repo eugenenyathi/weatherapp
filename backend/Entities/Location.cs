@@ -9,4 +9,5 @@ public class Location: BaseEntity
 
 	public virtual ICollection<DayWeather> DailyWeathers { get; set; } = new HashSet<DayWeather>();
 	public virtual ICollection<LocationJob> LocationJobs { get; set; } = new HashSet<LocationJob>();
+	public virtual ICollection<LocationSyncSchedule> LocationSyncSchedules { get; set; } = new HashSet<LocationSyncSchedule>();
 }

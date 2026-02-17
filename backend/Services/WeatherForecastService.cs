@@ -8,6 +8,7 @@ namespace weatherapp.Services;
 
 public class WeatherForecastService(AppDbContext context, ILocationService locationService) : IWeatherForecastService
 {
+
 	public async Task<List<LocationWeatherSummaryDto>> GetCurrentDaySummariesForAllTrackedLocationsAsync(Guid userId)
 	{
 		var preference = await context.UserPreferences
@@ -19,14 +20,14 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 		// Fetch tracked locations with their current day weather
 		var trackedLocations = await context.TrackLocations
 			.Include(tl => tl.Location)
-			.ThenInclude(l => l.DailyWeathers.Where(dw => dw.Date == today))
-			.Include(tl => tl.Location.LocationJobs.Where(lj =>  lj.Status == "Pending" || lj.Status == "Processing"))
+				.ThenInclude(l => l.DailyWeathers.Where(dw => dw.Date == today))
+			.Include(tl => tl.Location.LocationJobs.Where(lj => lj.Status == "Pending" || lj.Status == "Processing"))
 			.Where(tl => tl.UserId == userId)
 			.ToListAsync();
 
 		// Wait for any pending background jobs for these locations
 		var pendingJobLocations = trackedLocations
-			.Where(tl => tl.Location.LocationJobs.Any(lj => lj.Status is "Pending" or "Processing"))
+			.Where(tl => tl.Location.LocationJobs.Any(lj => lj.Status == "Pending" || lj.Status == "Processing"))
 			.Select(tl => tl.LocationId)
 			.Distinct()
 			.ToList();
@@ -39,7 +40,7 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 		// Re-fetch to get updated weather data after jobs complete
 		trackedLocations = await context.TrackLocations
 			.Include(tl => tl.Location)
-			.ThenInclude(l => l.DailyWeathers.Where(dw => dw.Date == today))
+				.ThenInclude(l => l.DailyWeathers.Where(dw => dw.Date == today))
 			.Where(tl => tl.UserId == userId)
 			.ToListAsync();
 
@@ -84,11 +85,11 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 			throw new UnauthorizedAccessException("User is not authorized to access this location's forecast.");
 		}
 
-		// Check if there's a pending job and wait for it
-		var hasPendingJob = await context.LocationJobs.AnyAsync(lj =>
-			lj.LocationId == locationId && lj.Status == "Pending" || lj.Status == "Processing");
+		// Check if there's a pending location job and wait for it
+		var hasPendingLocationJob = await context.LocationJobs
+			.AnyAsync(lj => lj.LocationId == locationId && (lj.Status == "Pending" || lj.Status == "Processing"));
 
-		if (hasPendingJob)
+		if (hasPendingLocationJob)
 		{
 			await locationService.WaitForLocationWeatherDataAsync(locationId);
 		}
@@ -108,6 +109,7 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 
 		return new LocationFiveDayForecastDto
 		{
+
 			LocationId = location.Id,
 			LocationName = location.Name,
 			Unit = unit,

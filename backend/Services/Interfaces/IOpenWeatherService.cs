@@ -9,4 +9,5 @@ public interface IOpenWeatherService
 	Task GetLocationHourlyWeather(Location location);
 	Task GetLocationDailyWeather(Location location);
 	Task SyncLocationsDailyWeather();
+	Task SyncWeatherForUserTrackedLocationsAsync(Guid userId);
 }
