@@ -109,7 +109,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 			entity.HasOne(up => up.User)
 				.WithMany()
 				.HasForeignKey(up => up.UserId)
-				.OnDelete(DeleteBehavior.NoAction); // Changed to NoAction or set to Restrict to avoid multiple cascade paths
+				.OnDelete(DeleteBehavior.Cascade); 
 
 			entity.Property(e => e.PreferredUnit)
 				.HasConversion<string>()
@@ -237,7 +237,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 				.OnDelete(DeleteBehavior.Cascade);
 
 			entity.HasOne(lss => lss.Location)
-				.WithMany()
+				.WithMany(l => l.LocationSyncSchedules)
 				.HasForeignKey(lss => lss.LocationId)
 				.OnDelete(DeleteBehavior.Cascade);
 

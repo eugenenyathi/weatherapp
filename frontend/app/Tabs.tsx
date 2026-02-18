@@ -30,7 +30,7 @@ const Tabs = ({ defaultValue, value, children, onTabChange }: TabsProps) => {
   return (
     <div className="w-full">
       <div className="flex justify-center mb-4">
-        <div className="inline-flex h-10 w-full max-w-xs sm:max-w-md items-center justify-center rounded-md bg-gray-100 p-1 text-gray-500">
+        <div className="inline-flex h-10 w-full max-w-[200px] sm:max-w-[240px] md:max-w-[280px] items-center justify-center rounded-md bg-gray-100 p-1 text-gray-500">
           <TabButton
             value="favorites"
             label="Favorites"
