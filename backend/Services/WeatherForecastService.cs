@@ -2,6 +2,7 @@
 using weatherapp.Data;
 using weatherapp.DataTransferObjects;
 using weatherapp.Enums;
+using weatherapp.Exceptions;
 using weatherapp.Services.Interfaces;
 
 namespace weatherapp.Services;
@@ -88,7 +89,7 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 
 		if (!isTracking)
 		{
-			throw new UnauthorizedAccessException("User is not authorized to access this location's forecast.");
+			throw new ForbiddenException("User is not authorized to access this location's forecast.");
 		}
 
 		// Check if there's a pending location job and wait for it
@@ -151,7 +152,7 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 
 		if (!isTracking)
 		{
-			throw new UnauthorizedAccessException("User is not authorized to access this location's forecast.");
+			throw new ForbiddenException("User is not authorized to access this location's forecast.");
 		}
 
 		// Check if there's a pending location job and wait for it

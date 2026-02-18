@@ -40,12 +40,12 @@ public class AuthService(AppDbContext context, IMapper mapper) : IAuthService
         // Find user by email
         var user = await context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (user == null)
-            throw new UnauthorizedAccessException("Invalid email or password.");
+            throw new ForbiddenException("Invalid email or password.");
 
         // Verify password
         var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
         if (!isPasswordValid)
-            throw new UnauthorizedAccessException("Invalid email or password.");
+            throw new ForbiddenException("Invalid email or password.");
 
         // Map user entity to LoginResponseDto
         var loginResponse = new LoginResponseDto
@@ -78,7 +78,6 @@ public class AuthService(AppDbContext context, IMapper mapper) : IAuthService
 
         user.Name = request.Name;
         user.Email = request.Email;
-        user.UpdatedAt = DateTime.UtcNow;
 
         context.Users.Update(user);
         await context.SaveChangesAsync();

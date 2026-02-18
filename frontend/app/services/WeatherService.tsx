@@ -9,8 +9,10 @@ export interface LocationWeatherSummary {
   minTemp: number;
   maxTemp: number;
   rain: number;
+  summary?: string;
   unit: "Metric" | "Imperial";
   isFavorite: boolean;
+  lastSyncedAt?: string;
 }
 
 export interface DayWeather {

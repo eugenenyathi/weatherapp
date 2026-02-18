@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using weatherapp.Data;
 using weatherapp.DataTransferObjects;
 using weatherapp.Entities;
+using weatherapp.Exceptions;
 using weatherapp.Requests;
 using weatherapp.Services.Interfaces;
 
@@ -25,8 +26,7 @@ public class LocationService(
 	{
 		if (await context.Locations.AnyAsync(l => l.Name == request.Name))
 		{
-			return (await context.Locations.Where(l => l.Name == request.Name)
-				.ProjectTo<LocationDto>(mapper.ConfigurationProvider).FirstOrDefaultAsync())!;
+			throw new DuplicateLocationException($"Location with name '{request.Name}' already exists.");
 		}
 
 		var location = mapper.Map<Location>(request);

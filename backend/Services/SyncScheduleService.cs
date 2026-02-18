@@ -26,7 +26,8 @@ public class SyncScheduleService(
 		// Create sync schedules for each location
 		foreach (var locationId in trackedLocations)
 		{
-			var recurringJobId = $"user-{userId}-location-{locationId}-sync";
+			// Use shorter job ID format to avoid SQL truncation
+			var recurringJobId = $"sync:{userId.ToString("N").Substring(0, 8)}:{locationId.ToString("N").Substring(0, 8)}";
 			var cronExpression = GetCronFromMinutes(refreshIntervalMinutes);
 
 			// Register recurring job
@@ -36,17 +37,27 @@ public class SyncScheduleService(
 				cronExpression
 			);
 
-			// Create sync schedule record
-			var syncSchedule = new LocationSyncSchedule
-			{
-				UserId = userId,
-				LocationId = locationId,
-				RecurringJobId = recurringJobId,
-				LastSyncAt = DateTime.MinValue,
-				NextSyncAt = DateTime.UtcNow.AddMinutes(refreshIntervalMinutes)
-			};
+			// Create or update sync schedule record
+			var syncSchedule = await context.LocationSyncSchedules
+				.FirstOrDefaultAsync(lss => lss.UserId == userId && lss.LocationId == locationId);
 
-			context.LocationSyncSchedules.Add(syncSchedule);
+			if (syncSchedule == null)
+			{
+				syncSchedule = new LocationSyncSchedule
+				{
+					UserId = userId,
+					LocationId = locationId,
+					RecurringJobId = recurringJobId,
+					LastSyncAt = DateTime.MinValue,
+					NextSyncAt = DateTime.UtcNow.AddMinutes(refreshIntervalMinutes)
+				};
+				context.LocationSyncSchedules.Add(syncSchedule);
+			}
+			else
+			{
+				syncSchedule.RecurringJobId = recurringJobId;
+				syncSchedule.NextSyncAt = DateTime.UtcNow.AddMinutes(refreshIntervalMinutes);
+			}
 		}
 
 		await context.SaveChangesAsync();
@@ -132,11 +143,7 @@ public class SyncScheduleService(
 
 		if (userPreference == null)
 		{
-			return new RefreshResultDto
-			{
-				Success = false,
-				Message = "User preference not found. Please set up your preferences first."
-			};
+			throw new NotFoundException("User preference not found. Please set up your preferences first.");
 		}
 
 		// Check if rate limit is exceeded
@@ -146,14 +153,7 @@ public class SyncScheduleService(
 			if (timeSinceLastRefresh < TimeSpan.FromMinutes(rateLimitMinutes))
 			{
 				var retryAfter = TimeSpan.FromMinutes(rateLimitMinutes) - timeSinceLastRefresh;
-				var nextRefreshAllowedAt = userPreference.LastManualRefreshAt.Value + TimeSpan.FromMinutes(rateLimitMinutes);
-
-				return new RefreshResultDto
-				{
-					Success = false,
-					Message = $"You can only refresh weather data once every {rateLimitMinutes} minutes. Please try again in {retryAfter.TotalMinutes:F1} minutes.",
-					NextRefreshAllowedAt = nextRefreshAllowedAt
-				};
+				throw new RateLimitExceededException(retryAfter);
 			}
 		}
 

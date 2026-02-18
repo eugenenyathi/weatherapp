@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Heart, MoreVertical, Clock, Calendar, Sun, Trash2 } from "lucide-react";
+import { Heart, MoreVertical, Clock, Calendar, Sun, Trash2, CloudRain, ThermometerSun, Droplets } from "lucide-react";
 
 interface WeatherRowProps {
   day: string;
@@ -123,11 +123,18 @@ const WeatherRow = ({
     <div className="flex flex-col md:flex-row items-start md:items-center justify-between py-3 border-b border-gray-100 last:border-0 gap-2 md:gap-0">
       <div className="text-base md:text-lg font-medium text-gray-800 w-full md:w-auto">{day}</div>
       <div className="flex items-center justify-between w-full md:w-auto space-x-2 md:space-x-4">
-        <div className="flex items-center text-base md:text-lg text-gray-700">
-          <span className="mr-1">🌧️</span>{rain}
+        <div className="flex items-center text-base md:text-lg text-gray-700 gap-1">
+          <CloudRain className="w-4 h-4 md:w-5 md:h-5" />
+          {rain}
         </div>
-        <div className="text-base md:text-lg text-gray-700">{maxTempValue}°</div>
-        <div className="text-base md:text-lg text-gray-700">{minTempValue}°</div>
+        <div className="flex items-center text-base md:text-lg text-gray-700 gap-1">
+          <ThermometerSun className="w-4 h-4 md:w-5 md:h-5" />
+          {maxTempValue}°
+        </div>
+        <div className="flex items-center text-base md:text-lg text-gray-700 gap-1">
+          <Droplets className="w-4 h-4 md:w-5 md:h-5" />
+          {minTempValue}°
+        </div>
 
         {showActions && (
           <div className="flex items-center space-x-2">

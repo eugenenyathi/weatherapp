@@ -65,8 +65,6 @@ public class UserPreferenceService(AppDbContext context, IMapper mapper, ISyncSc
 			userPreference.RefreshInterval = request.RefreshInterval.Value;
 		}
 
-		userPreference.UpdatedAt = DateTime.UtcNow;
-
 		await context.SaveChangesAsync();
 
 		// Update sync schedules if refresh interval changed

@@ -6,6 +6,7 @@ import { useCurrentDaySummaries } from "./hooks/weatherHooks";
 import WeatherRow from "./WeatherRow";
 import { trackLocationService } from "./services";
 import EditModal from "./components/EditModal";
+import { Droplets, ThermometerSun, CloudRain, Heart, MoreVertical } from "lucide-react";
 
 const LocationsList = ({
   onSelectLocation,
@@ -162,8 +163,60 @@ const LocationsList = ({
     setEditingLocation(null);
   };
 
+  // Get the last synced time from the first location (they should all be similar)
+  const lastSyncedTime = filteredSummaries?.[0]?.lastSyncedAt;
+  const formatLastSynced = (dateString?: string) => {
+    if (!dateString) return "Never";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return "Just now";
+    if (diffMins === 1) return "1 minute ago";
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours === 1) return "1 hour ago";
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+      {/* Header with column labels */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between py-3 border-b border-gray-200 mb-2 gap-2 md:gap-0">
+        <div className="text-base md:text-lg font-medium text-gray-800 w-full md:w-auto">Location</div>
+        <div className="flex items-center justify-between w-full md:w-auto space-x-2 md:space-x-4">
+          <div className="flex items-center text-base md:text-lg text-gray-600 gap-1">
+            <CloudRain className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="text-sm md:text-base">Rain</span>
+          </div>
+          <div className="flex items-center text-base md:text-lg text-gray-600 gap-1">
+            <ThermometerSun className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="text-sm md:text-base">High</span>
+          </div>
+          <div className="flex items-center text-base md:text-lg text-gray-600 gap-1">
+            <Droplets className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="text-sm md:text-base">Low</span>
+          </div>
+          <div className="flex items-center justify-center w-7 md:w-9">
+            <Heart className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+          </div>
+          <div className="flex items-center justify-center w-7 md:w-9">
+            <MoreVertical className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+          </div>
+        </div>
+      </div>
+
+      {/* Last synced indicator */}
+      {lastSyncedTime && (
+        <div className="text-xs text-gray-500 text-right mb-2">
+          Last synced: {formatLastSynced(lastSyncedTime)}
+        </div>
+      )}
+
       {/* Location rows */}
       <div className="space-y-3 md:space-y-4">
         {filteredSummaries?.map((summary) => (
@@ -179,13 +232,13 @@ const LocationsList = ({
               userId={user?.id}
               showActions={true}
               locationName={summary.locationName}
-              summary={summary.date}
               onHeartClick={() => handleFavoriteClick(summary.id)}
               onHourlyWeatherClick={onHourlyWeatherClick}
               onForecastClick={onForecastClick}
               onTodayClick={onTodayClick}
               onRemoveClick={(locationId) => handleRemoveClick(locationId)}
               displayName={summary.displayName || summary.locationName}
+              summary={summary.summary || "No summary available"}
             />
           </div>
         ))}

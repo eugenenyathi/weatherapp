@@ -99,8 +99,8 @@ export default function Home() {
     setSelectedLocation({ id: locationId, name: locationName });
   };
 
-  const handleTodayClick = (locationId: string, locationName: string, summary: string, minTemp?: string, maxTemp?: string, rain?: string) => {
-    setSelectedLocationForModal({ locationId, locationName, summary, minTemp, maxTemp, rain });
+  const handleTodayClick = (locationId: string, locationName: string, summary: string) => {
+    setSelectedLocationForModal({ locationId, locationName, summary });
     setIsTodayModalOpen(true);
   };
 
@@ -178,9 +178,6 @@ export default function Home() {
                   onClose={handleCloseTodayModal}
                   locationName={selectedLocationForModal.locationName}
                   summary={selectedLocationForModal.summary || ""}
-                  minTemp={selectedLocationForModal.minTemp || ""}
-                  maxTemp={selectedLocationForModal.maxTemp || ""}
-                  rain={selectedLocationForModal.rain || ""}
                 />
               </>
             )}

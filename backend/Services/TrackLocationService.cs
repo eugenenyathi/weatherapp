@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using weatherapp.Data;
 using weatherapp.DataTransferObjects;
 using weatherapp.Entities;
+using weatherapp.Exceptions;
 using weatherapp.Requests;
 using weatherapp.Services.Interfaces;
 
@@ -25,7 +26,7 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 		// Check if the location exists
 		var locationExists = await context.Locations.AnyAsync(l => l.Id == requests.LocationId);
 		if (!locationExists)
-			throw new ArgumentException($"Location with ID {requests.LocationId} does not exist.");
+			throw new NotFoundException($"Location with ID {requests.LocationId} does not exist.");
 
 		// Check if the user is already tracking this location
 		var existingTrackLocation = await context.TrackLocations
@@ -33,7 +34,7 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 
 		if (existingTrackLocation != null)
 		{
-			throw new InvalidOperationException(
+			throw new DuplicateTrackLocationException(
 				$"User is already tracking location with ID {requests.LocationId}.");
 		}
 
@@ -55,16 +56,16 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 	{
 		var trackLocation = await context.TrackLocations
 			                    .FirstOrDefaultAsync(tl => tl.UserId == userId && tl.Id == trackedLocationId) ??
-		                    throw new ArgumentException($"Tracked location with ID {trackedLocationId} not found for user ID {userId}.");
+		                    throw new NotFoundException($"Tracked location with ID {trackedLocationId} not found for user ID {userId}.");
 
 		// Update only the fields that are provided in the request
 		if (requests.IsFavorite.HasValue)
 			trackLocation.isFavorite = requests.IsFavorite.Value;
-		
-		
+
+
 		if (!string.IsNullOrEmpty(requests.DisplayName))
 			trackLocation.DisplayName = requests.DisplayName;
-		
+
 
 		await context.SaveChangesAsync();
 
@@ -81,7 +82,7 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 		var trackLocation = await context.TrackLocations
 			.FirstOrDefaultAsync(tl => tl.UserId == userId && tl.Id == trackedLocationId);
 
-		if (trackLocation == null) throw new ArgumentException($"Failed to delete Tracked Location with ID {trackedLocationId}");
+		if (trackLocation == null) throw new NotFoundException($"Failed to delete Tracked Location with ID {trackedLocationId}");
 
 		context.TrackLocations.Remove(trackLocation);
 		await context.SaveChangesAsync();

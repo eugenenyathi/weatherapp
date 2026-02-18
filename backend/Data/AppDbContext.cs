@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using weatherapp.Entities;
 using weatherapp.Enums;
+using weatherapp.Utilities;
 
 namespace weatherapp.Data;
 
@@ -14,6 +15,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 	public DbSet<User> Users { get; set; }
 	public DbSet<LocationJob> LocationJobs { get; set; }
 	public DbSet<LocationSyncSchedule> LocationSyncSchedules { get; set; }
+
+	public override int SaveChanges()
+	{
+		AuditHelper.ApplyAuditInfo(this);
+		return base.SaveChanges();
+	}
+
+	public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+	{
+		AuditHelper.ApplyAuditInfo(this);
+		return await base.SaveChangesAsync(cancellationToken);
+	}
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
