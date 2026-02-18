@@ -54,7 +54,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 jspm_packages/
-lib/
 tmp/
 temp/
 *.tgz

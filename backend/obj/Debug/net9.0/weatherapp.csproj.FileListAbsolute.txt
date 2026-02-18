@@ -346,3 +346,4 @@ C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\refint\weathera
 C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.pdb
 C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.genruntimeconfig.cache
 C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\ref\weatherapp.dll
+C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.sourcelink.json
