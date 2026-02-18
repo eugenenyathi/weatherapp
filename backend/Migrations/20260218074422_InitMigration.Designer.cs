@@ -12,8 +12,8 @@ using weatherapp.Data;
 namespace weatherapp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260218034252_UserPreferenceUserIdKeyFixMigration")]
-    partial class UserPreferenceUserIdKeyFixMigration
+    [Migration("20260218074422_InitMigration")]
+    partial class InitMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -293,6 +293,9 @@ namespace weatherapp.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastManualRefreshAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PreferredUnit")

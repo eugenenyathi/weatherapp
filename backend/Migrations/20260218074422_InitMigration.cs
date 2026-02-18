@@ -54,9 +54,9 @@ namespace weatherapp.Migrations
                     TimeOfForecast = table.Column<DateTime>(type: "datetime2", nullable: false),
                     MinTempMetric = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     MaxTempMetric = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
-                    MinTempImperial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    MaxTempImperial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Humidity = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MinTempImperial = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
+                    MaxTempImperial = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
+                    Humidity = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     Rain = table.Column<decimal>(type: "decimal(6,2)", nullable: true),
                     Summary = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -81,7 +81,7 @@ namespace weatherapp.Migrations
                     LocationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TempMetric = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
-                    TempImperial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TempImperial = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     Humidity = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -93,6 +93,59 @@ namespace weatherapp.Migrations
                         name: "FK_HourlyWeathers_Locations_LocationId",
                         column: x => x.LocationId,
                         principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LocationJobs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    LocationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    JobId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    JobCreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LocationJobs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LocationJobs_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LocationSyncSchedules",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    LocationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    LastSyncAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    NextSyncAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RecurringJobId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LocationSyncSchedules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LocationSyncSchedules_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LocationSyncSchedules_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -131,8 +184,9 @@ namespace weatherapp.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PreferredUnit = table.Column<int>(type: "int", nullable: false),
+                    PreferredUnit = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RefreshInterval = table.Column<int>(type: "int", nullable: false),
+                    LastManualRefreshAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -143,7 +197,8 @@ namespace weatherapp.Migrations
                         name: "FK_UserPreferences_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -155,6 +210,22 @@ namespace weatherapp.Migrations
                 name: "IX_HourlyWeathers_LocationId",
                 table: "HourlyWeathers",
                 column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LocationJobs_LocationId",
+                table: "LocationJobs",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LocationSyncSchedules_LocationId",
+                table: "LocationSyncSchedules",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LocationSyncSchedules_UserId_LocationId",
+                table: "LocationSyncSchedules",
+                columns: new[] { "UserId", "LocationId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_TrackLocations_LocationId",
@@ -186,6 +257,12 @@ namespace weatherapp.Migrations
 
             migrationBuilder.DropTable(
                 name: "HourlyWeathers");
+
+            migrationBuilder.DropTable(
+                name: "LocationJobs");
+
+            migrationBuilder.DropTable(
+                name: "LocationSyncSchedules");
 
             migrationBuilder.DropTable(
                 name: "TrackLocations");

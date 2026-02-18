@@ -136,7 +136,7 @@ dotnet ef database update
 If migrations don't exist, create them first:
 
 ```bash
-dotnet ef migrations add InitialCreate
+dotnet ef migrations add InitMigration
 dotnet ef database update
 ```
 
@@ -752,36 +752,3 @@ Use the included `weatherapp.http` file or tools like:
 - Swagger/OpenAPI (if enabled)
 
 ---
-
-## Production Considerations
-
-### Security
-
-- **API Keys:** Store in environment variables or Azure Key Vault
-- **Connection Strings:** Use managed identities or secure secret storage
-- **Hangfire Dashboard:** Add authentication middleware
-- **CORS:** Restrict to production frontend domain
-
-### Scalability
-
-- **Hangfire Storage:** Consider Redis for high-scale scenarios
-- **Database:** Use connection pooling and read replicas
-- **API Rate Limits:** Implement caching layer (Redis/MemoryCache)
-
-### Monitoring
-
-- **Logging:** Configure Application Insights or Serilog
-- **Health Checks:** Add `/health` endpoint
-- **Metrics:** Track job success rates and API response times
-
----
-
-## License
-
-This project is proprietary and confidential.
-
----
-
-## Support
-
-For issues or questions, contact the development team.
