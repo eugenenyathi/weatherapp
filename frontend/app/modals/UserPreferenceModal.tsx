@@ -19,11 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Settings, Loader2 } from "lucide-react";
-import {
-  userPreferenceService,
-  UserPreference,
-  UserPreferenceRequest,
-} from "./services/UserPreferenceService";
+import { userPreferenceService } from "../services/UserPreferenceService";
+import type { UserPreferenceRequest } from "../types";
 
 interface UserPreferenceModalProps {
   isOpen: boolean;

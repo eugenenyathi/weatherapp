@@ -1,21 +1,9 @@
 import axios from "axios";
-
-export interface TrackLocation {
-  id: string;
-  isFavorite: boolean;
-  displayName: string;
-}
-
-export interface CreateTrackLocationRequest {
-  locationId: string;
-  isFavorite?: boolean;
-  displayName?: string;
-}
-
-export interface UpdateTrackLocationRequest {
-  isFavorite?: boolean;
-  displayName?: string;
-}
+import type {
+  TrackLocation,
+  CreateTrackLocationRequest,
+  UpdateTrackLocationRequest,
+} from "../types";
 
 class TrackLocationService {
   private baseUrl: string;

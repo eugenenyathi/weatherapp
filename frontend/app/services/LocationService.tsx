@@ -1,19 +1,5 @@
 import axios from "axios";
-
-export interface Location {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  country: string;
-}
-
-export interface LocationRequest {
-  name: string;
-  latitude: number;
-  longitude: number;
-  country: string;
-}
+import type { Location, LocationRequest } from "../types";
 
 class LocationService {
   private baseUrl: string;

@@ -5,7 +5,7 @@ import { useAuth } from "./AuthContext";
 import { useCurrentDaySummaries } from "./hooks/weatherHooks";
 import WeatherRow from "./WeatherRow";
 import { trackLocationService } from "./services";
-import EditModal from "./components/EditModal";
+import { EditModal } from "./modals";
 import { Droplets, ThermometerSun, CloudRain, Heart, MoreVertical } from "lucide-react";
 
 const LocationsList = ({

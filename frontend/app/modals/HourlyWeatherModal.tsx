@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Clock, Loader2, Droplets } from "lucide-react";
-import { useHourlyForecast } from "./hooks/weatherHooks";
+import { useHourlyForecast } from "../hooks/weatherHooks";
 
 interface HourlyWeatherModalProps {
   isOpen: boolean;

@@ -7,11 +7,7 @@ import LocationsList from "./WeatherComponent";
 import ForecastComponent from "./ForecastComponent";
 import Tabs from "./Tabs";
 import Header from "./Header";
-import AddLocationModal from "./AddLocationModal";
-import LocationWarningModal from "./LocationWarningModal";
-import UserPreferenceModal from "./UserPreferenceModal";
-import HourlyWeatherModal from "./HourlyWeatherModal";
-import TodayWeatherModal from "./TodayWeatherModal";
+import { AddLocationModal, LocationWarningModal, UserPreferenceModal, HourlyWeatherModal, TodayWeatherModal } from "./modals";
 import { toast } from "sonner";
 import { weatherService } from "./services";
 

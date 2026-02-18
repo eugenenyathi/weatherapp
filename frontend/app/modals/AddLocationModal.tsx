@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { useCreateLocation } from './hooks/locationHooks';
-import { useCreateTrackLocation } from './hooks/trackLocationHooks';
+import { useCreateLocation } from '../hooks/locationHooks';
+import { useCreateTrackLocation } from '../hooks/trackLocationHooks';
 import {
   Dialog,
   DialogContent,
@@ -14,14 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X, Loader2, MapPin } from "lucide-react";
-
-interface Location {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  country: string;
-}
+import type { Location } from "../types";
 
 interface AddLocationModalProps {
   isOpen: boolean;

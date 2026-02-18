@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { userPreferenceService, UserPreferenceRequest } from '../services/UserPreferenceService';
+import { userPreferenceService } from '../services/UserPreferenceService';
+import type { UserPreferenceRequest } from '../types';
 
 // User preference hooks
 export const useUserPreference = (userId: string) => {

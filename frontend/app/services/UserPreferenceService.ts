@@ -1,15 +1,5 @@
 import axios from "axios";
-
-export interface UserPreference {
-  id: string;
-  preferredUnit: "Metric" | "Imperial";
-  refreshInterval: number;
-}
-
-export interface UserPreferenceRequest {
-  preferredUnit?: "Metric" | "Imperial";
-  refreshInterval?: number;
-}
+import type { UserPreference, UserPreferenceRequest } from "../types";
 
 class UserPreferenceService {
   private baseUrl: string;

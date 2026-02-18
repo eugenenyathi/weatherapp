@@ -1,37 +1,25 @@
-// Main service file that exports all individual services and types
-export * from './AuthService';
-export * from './LocationService';
-export * from './WeatherService';
-export * from './TrackLocationService';
-export * from './UserPreferenceService';
+// Main service file that exports all individual services
+export { authService } from './AuthService';
+export { locationService } from './LocationService';
+export { weatherService } from './WeatherService';
+export { trackLocationService } from './TrackLocationService';
+export { userPreferenceService } from './UserPreferenceService';
 
-// Export types
-export type { 
+// Re-export all types from the types folder
+export type {
   User,
   RegisterRequest,
   LoginRequest,
-  AuthResponse,
-  ErrorResponse 
-} from './AuthService';
-
-export type { 
   Location,
-  LocationRequest
-} from './LocationService';
-
-export type { 
   LocationWeatherSummary,
   DayWeather,
-  LocationFiveDayForecast
-} from './WeatherService';
-
-export type { 
+  LocationFiveDayForecast,
+  HourWeather,
+  LocationHourlyForecast,
+  RefreshResult,
   TrackLocation,
   CreateTrackLocationRequest,
-  UpdateTrackLocationRequest
-} from './TrackLocationService';
-
-export type { 
+  UpdateTrackLocationRequest,
   UserPreference,
-  UserPreferenceRequest
-} from './UserPreferenceService';
+  UserPreferenceRequest,
+} from '../types';
