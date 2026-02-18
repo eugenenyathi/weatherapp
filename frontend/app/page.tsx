@@ -12,6 +12,8 @@ import LocationWarningModal from "./LocationWarningModal";
 import UserPreferenceModal from "./UserPreferenceModal";
 import HourlyWeatherModal from "./HourlyWeatherModal";
 import TodayWeatherModal from "./TodayWeatherModal";
+import { toast } from "sonner";
+import { weatherService } from "./services";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -77,9 +79,25 @@ export default function Home() {
     setIsModalOpen(false); // Close the main modal too when going to login
   };
 
-  const handleRefreshClick = () => {
-    // Refetch all active queries to refresh weather data
-    queryClient.refetchQueries({ type: 'active' });
+  const handleRefreshClick = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const result = await weatherService.refreshWeatherData(user.id);
+      
+      if (result.success) {
+        // Invalidate and refetch all weather queries
+        await queryClient.invalidateQueries({ queryKey: ['currentDaySummaries'] });
+        await queryClient.invalidateQueries({ queryKey: ['fiveDayForecast'] });
+        await queryClient.invalidateQueries({ queryKey: ['hourlyForecast'] });
+        
+        toast.success("Weather data refreshed successfully!");
+      } else {
+        toast.error(result.message || "Failed to refresh weather data");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to refresh weather data");
+    }
   };
 
   const handleOpenPreferences = () => {

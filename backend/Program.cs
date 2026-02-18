@@ -10,6 +10,7 @@ using weatherapp.Mappers;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using weatherapp.Middleware;
 using weatherapp.Requests;
 using weatherapp.Validators;
 
@@ -106,6 +107,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontendOrigin");
 app.UseRouting();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // Add Hangfire middleware
 app.UseHangfireDashboard();

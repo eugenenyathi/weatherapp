@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Heart, MoreVertical, Clock, Calendar, Sun, Trash2, CloudRain, ThermometerSun, Droplets } from "lucide-react";
+import { Heart, MoreVertical, Clock, Calendar, Sun, Trash2, CloudRain, ThermometerSun, Droplets, Pencil } from "lucide-react";
 
 interface WeatherRowProps {
   day: string;
@@ -23,7 +23,7 @@ interface WeatherRowProps {
   onHourlyWeatherClick?: (locationId: string, locationName: string) => void;
   onForecastClick?: (locationId: string, locationName: string) => void;
   onTodayClick?: (locationId: string, locationName: string, summary: string) => void;
-  onEditClick?: () => void;
+  onEditClick?: (locationId: string, displayName: string) => void;
   onRemoveClick?: (locationId: string) => void;
   displayName?: string;
   locationName?: string;
@@ -114,8 +114,8 @@ const WeatherRow = ({
   };
 
   const handleEditClick = () => {
-    if (onEditClick) {
-      onEditClick();
+    if (onEditClick && trackedLocationId && displayName) {
+      onEditClick(trackedLocationId, displayName);
     }
   };
 
@@ -175,6 +175,10 @@ const WeatherRow = ({
                 <DropdownMenuItem onClick={handleTodayClick}>
                   <Sun className="w-4 h-4 mr-2" />
                   Today
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleEditClick}>
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleRemoveClick}

@@ -44,6 +44,13 @@ export interface LocationHourlyForecast {
   hourlyForecasts: HourWeather[];
 }
 
+export interface RefreshResult {
+  success: boolean;
+  message: string;
+  lastSyncedAt?: string;
+  nextRefreshAllowedAt?: string;
+}
+
 class WeatherService {
   private baseUrl: string;
 
@@ -108,6 +115,25 @@ class WeatherService {
       if (error.response) {
         throw new Error(
           error.response.data.message || "Failed to fetch hourly forecast",
+        );
+      } else if (error.request) {
+        throw new Error("Network error: Unable to reach the server");
+      } else {
+        throw new Error(error.message || "An unexpected error occurred");
+      }
+    }
+  }
+
+  async refreshWeatherData(userId: string): Promise<RefreshResult> {
+    try {
+      const response = await axios.post<RefreshResult>(
+        `${this.baseUrl}/weather-forecasts/refresh/${userId}`,
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response) {
+        throw new Error(
+          error.response.data.message || "Failed to refresh weather data",
         );
       } else if (error.request) {
         throw new Error("Network error: Unable to reach the server");

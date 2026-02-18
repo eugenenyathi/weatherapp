@@ -21,7 +21,7 @@ const LocationsList = ({
   onTabChange?: (tab: string) => void;
   onHourlyWeatherClick?: (locationId: string, locationName: string) => void;
   onForecastClick?: (locationId: string, locationName: string) => void;
-  onTodayClick?: (locationId: string, locationName: string, summary: string, minTemp?: string, maxTemp?: string, rain?: string) => void;
+  onTodayClick?: (locationId: string, locationName: string, summary: string) => void;
 }) => {
   const { user } = useAuth();
   const {
@@ -131,8 +131,8 @@ const LocationsList = ({
     }
   };
 
-  const handleEditClick = (locationId: string, currentDisplayName: string) => {
-    setEditingLocation({ id: locationId, displayName: currentDisplayName });
+  const handleEditClick = (locationId: string, displayName: string) => {
+    setEditingLocation({ id: locationId, displayName });
     setIsEditModalOpen(true);
   };
 
@@ -236,6 +236,7 @@ const LocationsList = ({
               onHourlyWeatherClick={onHourlyWeatherClick}
               onForecastClick={onForecastClick}
               onTodayClick={onTodayClick}
+              onEditClick={handleEditClick}
               onRemoveClick={(locationId) => handleRemoveClick(locationId)}
               displayName={summary.displayName || summary.locationName}
               summary={summary.summary || "No summary available"}
