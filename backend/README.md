@@ -191,12 +191,12 @@ dotnet run
 ```
 
 The API will be available at:
-- **HTTPS:** `https://localhost:7001` (or configured port)
-- **HTTP:** `http://localhost:5001` (or configured port)
+- **HTTPS:** `https://localhost:5243` (or configured port)
+- **HTTP:** `http://localhost:5243 (or configured port)
 
 #### 6. Access Hangfire Dashboard
 
-Navigate to: `https://localhost:7001/hangfire`
+Navigate to: `https://localhost:5243/hangfire`
 
 The dashboard provides real-time monitoring of all background jobs.
 
