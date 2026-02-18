@@ -5,6 +5,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useCreateLocation } from './hooks/locationHooks';
 import { useCreateTrackLocation } from './hooks/trackLocationHooks';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { X, Loader2, MapPin } from "lucide-react";
 
 interface Location {
   id: string;
@@ -53,15 +62,13 @@ const AddLocationModal = ({
         country: item.country
       }));
     },
-    enabled: !!searchTerm.trim(), // Only run the query if searchTerm is not empty
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    retry: 2, // Retry failed requests up to 2 times
+    enabled: !!searchTerm.trim(),
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 
-  // Focus the input when the modal opens
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      // Small delay to ensure the modal is rendered before focusing
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
@@ -72,7 +79,6 @@ const AddLocationModal = ({
     try {
       setIsRefreshing(true);
 
-      // First, create the location in the backend
       const createdLocation = await createLocationMutation.mutateAsync({
         name: location.name,
         latitude: location.latitude,
@@ -80,7 +86,6 @@ const AddLocationModal = ({
         country: location.country
       });
 
-      // Then, create a track location record for this user
       await createTrackLocationMutation.mutateAsync({
         userId,
         trackLocationData: {
@@ -89,15 +94,12 @@ const AddLocationModal = ({
         }
       });
 
-      // Refetch current day summaries to get the new location with weather data
-      await queryClient.refetchQueries({ 
+      await queryClient.refetchQueries({
         queryKey: ['currentDaySummaries', userId],
         type: 'active'
       });
 
       setIsRefreshing(false);
-
-      // Close the modal
       onClose();
     } catch (error) {
       console.error('Error adding location:', error);
@@ -105,91 +107,86 @@ const AddLocationModal = ({
     }
   };
 
-  if (!isOpen) return null;
+  const isPending = createLocationMutation.isPending || createTrackLocationMutation.isPending || isRefreshing;
 
   return (
-    <div className="fixed inset-0 bg-white bg-opacity-60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-4 md:p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg md:text-xl font-bold text-gray-800">Add Location</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-lg"
-          >
-            ✕
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
+            Add Location
+          </DialogTitle>
+        </DialogHeader>
 
-        <div className="mb-4">
-          <input
+        <div className="space-y-4">
+          <Input
             ref={inputRef}
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search for a city..."
-            className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
-            disabled={createLocationMutation.isPending || createTrackLocationMutation.isPending}
+            disabled={isPending}
           />
+
+          {isPending && (
+            <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {isRefreshing ? 'Refreshing weather data...' : 'Adding location...'}
+            </div>
+          )}
+
+          {!isPending && isLoading && (
+            <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Searching...
+            </div>
+          )}
+
+          {!isPending && !isLoading && suggestions.length > 0 && (
+            <div className="border rounded-md max-h-48 overflow-y-auto">
+              {suggestions.map((location: Location) => (
+                <Button
+                  key={location.id}
+                  variant="ghost"
+                  className="w-full justify-start h-auto py-2 px-3 hover:bg-gray-50"
+                  onClick={() => handleSelectLocation(location)}
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium text-sm">{location.name}</span>
+                    <span className="text-xs text-muted-foreground">{location.country}</span>
+                  </div>
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {!isPending && !isLoading && searchTerm && suggestions.length === 0 && (
+            <div className="text-center py-4 text-sm text-muted-foreground">
+              No locations found
+            </div>
+          )}
+
+          {geocodingError && !isRefreshing && (
+            <div className="text-center py-2 text-sm text-destructive">
+              Error searching locations: {geocodingError.message}
+            </div>
+          )}
+
+          {createLocationMutation.error && (
+            <div className="text-center py-2 text-sm text-destructive">
+              Error: {createLocationMutation.error.message}
+            </div>
+          )}
+
+          {createTrackLocationMutation.error && (
+            <div className="text-center py-2 text-sm text-destructive">
+              Error: {createTrackLocationMutation.error.message}
+            </div>
+          )}
         </div>
-
-        {(createLocationMutation.isPending || createTrackLocationMutation.isPending) && (
-          <div className="text-center py-4">
-            <p className="text-gray-700 text-sm md:text-base">Adding location...</p>
-          </div>
-        )}
-
-        {isRefreshing && (
-          <div className="text-center py-4">
-            <p className="text-gray-700 text-sm md:text-base">Refreshing weather data...</p>
-          </div>
-        )}
-
-        {!(createLocationMutation.isPending || createTrackLocationMutation.isPending) && !isRefreshing && isLoading && (
-          <div className="text-center py-4">
-            <p className="text-gray-700 text-sm md:text-base">Searching...</p>
-          </div>
-        )}
-
-        {!(createLocationMutation.isPending || createTrackLocationMutation.isPending) && !isRefreshing && !isLoading && suggestions.length > 0 && (
-          <div className="border border-gray-200 rounded-md max-h-48 md:max-h-60 overflow-y-auto mb-4">
-            {suggestions.map((location) => (
-              <div
-                key={location.id}
-                className="p-2 md:p-3 border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
-                onClick={() => handleSelectLocation(location)}
-              >
-                <div className="font-medium text-gray-800 text-sm md:text-base">{location.name}</div>
-                <div className="text-xs md:text-sm text-gray-600">{location.country}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!(createLocationMutation.isPending || createTrackLocationMutation.isPending) && !isRefreshing && !isLoading && searchTerm && suggestions.length === 0 && (
-          <div className="text-center py-4 text-gray-600 mb-4">
-            <p className="text-sm md:text-base">No locations found</p>
-          </div>
-        )}
-
-        {geocodingError && !isRefreshing && (
-          <div className="text-center py-2 text-red-500 text-xs md:text-sm">
-            Error searching locations: {geocodingError.message}
-          </div>
-        )}
-
-        {createLocationMutation.error && (
-          <div className="text-center py-2 text-red-500 text-xs md:text-sm">
-            Error: {createLocationMutation.error.message}
-          </div>
-        )}
-
-        {createTrackLocationMutation.error && (
-          <div className="text-center py-2 text-red-500 text-xs md:text-sm">
-            Error: {createTrackLocationMutation.error.message}
-          </div>
-        )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

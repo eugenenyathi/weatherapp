@@ -68,14 +68,12 @@ const ForecastComponent = ({ locationId, locationName, onBack }: ForecastCompone
         {forecastData?.fiveDayForecasts.map((day, index) => (
           <WeatherRow
             key={index}
-            day={day.date} // Using the date from the API
+            day={day.date}
             rain={`${Math.round(day.rain)}%`}
             maxTemp={day.maxTemp.toString()}
             minTemp={day.minTemp.toString()}
-            locationId={locationId}
-            isFavorite={false} // Default to false for forecast days
-            userId={user?.id}
-            showActions={false} // Don't show heart and 3 dots menu in forecast
+            isFavorite={false}
+            showActions={false}
           />
         ))}
       </div>

@@ -4,6 +4,7 @@ export interface LocationWeatherSummary {
   id: string; // ID of the tracked location entry
   locationId: string;
   locationName: string;
+  displayName?: string;
   date: string;
   minTemp: number;
   maxTemp: number;
@@ -26,6 +27,19 @@ export interface LocationFiveDayForecast {
   locationName: string;
   unit: "Metric" | "Imperial";
   fiveDayForecasts: DayWeather[];
+}
+
+export interface HourWeather {
+  dateTime: string;
+  temp: number;
+  humidity: number;
+}
+
+export interface LocationHourlyForecast {
+  locationId: string;
+  locationName: string;
+  unit: "Metric" | "Imperial";
+  hourlyForecasts: HourWeather[];
 }
 
 class WeatherService {
@@ -70,6 +84,28 @@ class WeatherService {
       if (error.response) {
         throw new Error(
           error.response.data.message || "Failed to fetch forecast",
+        );
+      } else if (error.request) {
+        throw new Error("Network error: Unable to reach the server");
+      } else {
+        throw new Error(error.message || "An unexpected error occurred");
+      }
+    }
+  }
+
+  async getHourlyForecastForLocation(
+    locationId: string,
+    userId: string,
+  ): Promise<LocationHourlyForecast> {
+    try {
+      const response = await axios.get<LocationHourlyForecast>(
+        `${this.baseUrl}/weather-forecasts/hourly-forecast/${locationId}/${userId}`,
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response) {
+        throw new Error(
+          error.response.data.message || "Failed to fetch hourly forecast",
         );
       } else if (error.request) {
         throw new Error("Network error: Unable to reach the server");

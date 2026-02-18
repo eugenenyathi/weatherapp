@@ -17,3 +17,11 @@ export const useFiveDayForecast = (locationId: string, userId: string) => {
     enabled: !!locationId && !!userId,
   });
 };
+
+export const useHourlyForecast = (locationId: string, userId: string) => {
+  return useQuery({
+    queryKey: ['hourlyForecast', locationId, userId],
+    queryFn: () => weatherService.getHourlyForecastForLocation(locationId, userId),
+    enabled: !!locationId && !!userId,
+  });
+};

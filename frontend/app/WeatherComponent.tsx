@@ -11,10 +11,16 @@ const LocationsList = ({
   onSelectLocation,
   activeTab = "favorites",
   onTabChange,
+  onHourlyWeatherClick,
+  onForecastClick,
+  onTodayClick,
 }: {
   onSelectLocation: (locationId: string, locationName: string) => void;
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  onHourlyWeatherClick?: (locationId: string, locationName: string) => void;
+  onForecastClick?: (locationId: string, locationName: string) => void;
+  onTodayClick?: (locationId: string, locationName: string, summary: string, minTemp?: string, maxTemp?: string, rain?: string) => void;
 }) => {
   const { user } = useAuth();
   const {
@@ -167,20 +173,17 @@ const LocationsList = ({
               rain={`${Math.round(summary.rain)}%`}
               maxTemp={summary.maxTemp.toString()}
               minTemp={summary.minTemp.toString()}
-              trackedLocationId={summary.id} // Use the tracked location ID
+              trackedLocationId={summary.id}
+              locationId={summary.locationId}
               isFavorite={summary.isFavorite}
               userId={user?.id}
-              showActions={true} // Show heart and 3 dots menu in weather list
+              showActions={true}
+              locationName={summary.locationName}
+              summary={summary.date}
               onHeartClick={() => handleFavoriteClick(summary.id)}
-              onViewMoreClick={() =>
-                onSelectLocation(summary.locationId, summary.locationName)
-              }
-              onEditClick={() =>
-                handleEditClick(
-                  summary.id,
-                  summary.displayName || summary.locationName,
-                )
-              }
+              onHourlyWeatherClick={onHourlyWeatherClick}
+              onForecastClick={onForecastClick}
+              onTodayClick={onTodayClick}
               onRemoveClick={(locationId) => handleRemoveClick(locationId)}
               displayName={summary.displayName || summary.locationName}
             />

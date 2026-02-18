@@ -1,5 +1,5 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { userPreferenceService } from '../services';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { userPreferenceService, UserPreferenceRequest } from '../services/UserPreferenceService';
 
 // User preference hooks
 export const useUserPreference = (userId: string) => {
@@ -11,26 +11,29 @@ export const useUserPreference = (userId: string) => {
 };
 
 export const useCreateUserPreference = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation({
-    mutationFn: ({ userId, preferenceData }: { userId: string; preferenceData: { temperatureUnit: 'Metric' | 'Imperial' } }) => 
+    mutationFn: ({ userId, preferenceData }: { userId: string; preferenceData: UserPreferenceRequest }) =>
       userPreferenceService.createUserPreference(userId, preferenceData),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['userPreference', variables.userId] });
+    },
   });
 };
 
 export const useUpdateUserPreference = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation({
-    mutationFn: ({ userId, preferenceId, preferenceData }: { 
-      userId: string; 
-      preferenceId: string; 
-      preferenceData: { temperatureUnit: 'Metric' | 'Imperial' } 
-    }) => 
+    mutationFn: ({ userId, preferenceId, preferenceData }: {
+      userId: string;
+      preferenceId: string;
+      preferenceData: UserPreferenceRequest
+    }) =>
       userPreferenceService.updateUserPreference(userId, preferenceId, preferenceData),
-  });
-};
-
-export const useDeleteUserPreference = () => {
-  return useMutation({
-    mutationFn: ({ userId, preferenceId }: { userId: string; preferenceId: string }) => 
-      userPreferenceService.deleteUserPreference(userId, preferenceId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['userPreference', variables.userId] });
+    },
   });
 };

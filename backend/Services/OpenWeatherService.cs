@@ -10,97 +10,147 @@ namespace weatherapp.Services;
 public class OpenWeatherService(
     AppDbContext context,
     IOpenWeatherMapHttpClient httpClient,
-    IConfiguration configuration) : IOpenWeatherService
+    IConfiguration configuration,
+    ILogger<OpenWeatherService> logger) : IOpenWeatherService
 {
     public async Task GetLocationHourlyWeather(Location location)
     {
-        var apiKey = GetApiKey();
-        // Note: 'daily' is excluded here, and we include 'hourly'
-        var endpoint =
-            $"?lat={location.Latitude}&lon={location.Longitude}&units=metric&exclude=current,minutely,daily,alerts&appid={apiKey}";
-
-        var response = await httpClient.SendAsync(HttpMethod.Get, endpoint);
-        response.EnsureSuccessStatusCode();
-
-        var weatherData = await response.Content.ReadFromJsonAsync<OpenWeatherHourlyResponse>();
-        if (weatherData?.Hourly == null) return;
-
-        // Mapping to Hourly Entities (Taking the next 24 hours)
-        var hourlyEntities = weatherData.Hourly.Take(24).Select(h => new HourWeather
+        try
         {
-            LocationId = location.Id,
-            DateTime = DateTimeOffset.FromUnixTimeSeconds(h.Dt).UtcDateTime,
-            TempMetric = h.Temp,
-            TempImperial = (h.Temp * 9 / 5) + 32,
-            Humidity = h.Humidity,
-        }).ToList();
+            var apiKey = GetApiKey();
+            // Note: 'daily' is excluded here, and we include 'hourly'
+            var endpoint =
+                $"?lat={location.Latitude}&lon={location.Longitude}&units=metric&exclude=current,minutely,daily,alerts&appid={apiKey}";
 
-        // Prevent duplicate date-times for the same location
-        var hourlyDateTimes = hourlyEntities.Select(h => h.DateTime).ToList();
+            var response = await httpClient.SendAsync(HttpMethod.Get, endpoint);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                logger.LogWarning(
+                    "OpenWeatherMap API returned {StatusCode} for location {LocationName} ({LocationId}): {ErrorContent}",
+                    response.StatusCode, location.Name, location.Id, errorContent);
+                return;
+            }
 
-        var existingHourly = context.HourlyWeathers
-            .Where(w => w.LocationId == location.Id &&
-                        hourlyDateTimes.Contains(w.DateTime));
+            var weatherData = await response.Content.ReadFromJsonAsync<OpenWeatherHourlyResponse>();
+            
+            if (weatherData?.Hourly == null)
+            {
+                logger.LogWarning("No hourly weather data received for location {LocationName} ({LocationId})",
+                    location.Name, location.Id);
+                return;
+            }
 
-        context.HourlyWeathers.RemoveRange(existingHourly);
+            // Mapping to Hourly Entities (Taking the next 24 hours)
+            var hourlyEntities = weatherData.Hourly.Take(24).Select(h => new HourWeather
+            {
+                LocationId = location.Id,
+                DateTime = DateTimeOffset.FromUnixTimeSeconds(h.Dt).UtcDateTime,
+                TempMetric = h.Temp,
+                TempImperial = (h.Temp * 9 / 5) + 32,
+                Humidity = h.Humidity,
+            }).ToList();
 
-        await context.HourlyWeathers.AddRangeAsync(hourlyEntities);
+            // Prevent duplicate date-times for the same location
+            var hourlyDateTimes = hourlyEntities.Select(h => h.DateTime).ToList();
 
-        await context.SaveChangesAsync();
+            var existingHourly = context.HourlyWeathers
+                .Where(w => w.LocationId == location.Id &&
+                            hourlyDateTimes.Contains(w.DateTime));
+
+            context.HourlyWeathers.RemoveRange(existingHourly);
+
+            await context.HourlyWeathers.AddRangeAsync(hourlyEntities);
+
+            await context.SaveChangesAsync();
+            
+            logger.LogDebug("Successfully fetched hourly weather for location {LocationName} ({LocationId})",
+                location.Name, location.Id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to fetch hourly weather for location {LocationName} ({LocationId})",
+                location.Name, location.Id);
+            throw;
+        }
     }
 
     public async Task GetLocationDailyWeather(Location location)
     {
-        var apiKey = GetApiKey();
+        try
+        {
+            var apiKey = GetApiKey();
 
-        // Fetch in Metric by default
-        var endpoint =
-            $"?lat={location.Latitude}&lon={location.Longitude}&units=metric&exclude=current,minutely,hourly,alerts&appid={apiKey}";
+            // Fetch in Metric by default
+            var endpoint =
+                $"?lat={location.Latitude}&lon={location.Longitude}&units=metric&exclude=current,minutely,hourly,alerts&appid={apiKey}";
 
-        var response = await httpClient.SendAsync(HttpMethod.Get, endpoint);
-
-        response.EnsureSuccessStatusCode();
-
-        var weatherData = await response.Content.ReadFromJsonAsync<OpenWeatherDailyResponse>();
-
-        if (weatherData?.Daily == null)
-            return;
-
-        var forecastEntities = weatherData.Daily
-            .Take(5)
-            .Select(d =>
+            var response = await httpClient.SendAsync(HttpMethod.Get, endpoint);
+            
+            if (!response.IsSuccessStatusCode)
             {
-                var forecastTime = DateTimeOffset.FromUnixTimeSeconds(d.Dt);
+                var errorContent = await response.Content.ReadAsStringAsync();
+                logger.LogWarning(
+                    "OpenWeatherMap API returned {StatusCode} for location {LocationName} ({LocationId}): {ErrorContent}",
+                    response.StatusCode, location.Name, location.Id, errorContent);
+                return;
+            }
 
-                return new DayWeather
+            var weatherData = await response.Content.ReadFromJsonAsync<OpenWeatherDailyResponse>();
+            
+            if (weatherData?.Daily == null)
+            {
+                logger.LogWarning("No daily weather data received for location {LocationName} ({LocationId})",
+                    location.Name, location.Id);
+                return;
+            }
+
+            var forecastEntities = weatherData.Daily
+                .Take(5)
+                .Select(d =>
                 {
-                    LocationId = location.Id,
-                    Date = DateOnly.FromDateTime(forecastTime.DateTime),
-                    TimeOfForecast = forecastTime.DateTime,
-                    MinTempMetric = d.Temp.Min,
-                    MaxTempMetric = d.Temp.Max,
-                    // Imperial (Calculated: C * 9/5 + 32)
-                    MinTempImperial = (d.Temp.Min * 9 / 5) + 32,
-                    MaxTempImperial = (d.Temp.Max * 9 / 5) + 32,
-                    Humidity = d.Humidity,
-                    Rain = d.Rain,
-                    Summary = d.Summary
-                };
-            })
-            .ToList();
+                    var forecastTime = DateTimeOffset.FromUnixTimeSeconds(d.Dt);
 
-        // Prevent duplicate dates for the same location
-        var forecastDates = forecastEntities.Select(f => f.Date).ToList();
+                    return new DayWeather
+                    {
+                        LocationId = location.Id,
+                        Date = DateOnly.FromDateTime(forecastTime.DateTime),
+                        TimeOfForecast = forecastTime.DateTime,
+                        MinTempMetric = d.Temp.Min,
+                        MaxTempMetric = d.Temp.Max,
+                        // Imperial (Calculated: C * 9/5 + 32)
+                        MinTempImperial = (d.Temp.Min * 9 / 5) + 32,
+                        MaxTempImperial = (d.Temp.Max * 9 / 5) + 32,
+                        Humidity = d.Humidity,
+                        Rain = d.Rain,
+                        Summary = d.Summary
+                    };
+                })
+                .ToList();
 
-        var existingForecasts = context.DailyWeathers
-            .Where(w => w.LocationId == location.Id &&
-                        forecastDates.Contains(w.Date));
+            // Prevent duplicate dates for the same location
+            var forecastDates = forecastEntities.Select(f => f.Date).ToList();
 
-        context.DailyWeathers.RemoveRange(existingForecasts);
+            var existingForecasts = context.DailyWeathers
+                .Where(w => w.LocationId == location.Id &&
+                            forecastDates.Contains(w.Date));
 
-        await context.DailyWeathers.AddRangeAsync(forecastEntities);
+            context.DailyWeathers.RemoveRange(existingForecasts);
 
-        await context.SaveChangesAsync();
+            await context.DailyWeathers.AddRangeAsync(forecastEntities);
+
+            await context.SaveChangesAsync();
+            
+            logger.LogDebug("Successfully fetched daily weather for location {LocationName} ({LocationId})",
+                location.Name, location.Id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to fetch daily weather for location {LocationName} ({LocationId})",
+                location.Name, location.Id);
+            throw;
+        }
     }
 
     public async Task SyncLocationsDailyWeather()
@@ -108,7 +158,13 @@ public class OpenWeatherService(
         // 1. Grab all locations from the DB
         var locations = await context.Locations.ToListAsync();
 
-        if (!locations.Any()) return;
+        if (!locations.Any())
+        {
+            logger.LogInformation("No locations found to sync weather data");
+            return;
+        }
+
+        logger.LogInformation("Starting weather sync for {Count} locations", locations.Count);
 
         // 2. Iterate and update each location with both daily and hourly weather
         foreach (var location in locations)
@@ -120,10 +176,12 @@ public class OpenWeatherService(
             }
             catch (Exception ex)
             {
-                // Log the error for this specific location but continue with others
-                Console.WriteLine($"Failed to sync weather for {location.Name}: {ex.Message}");
+                logger.LogError(ex, "Failed to sync weather for location {LocationName} ({LocationId})",
+                    location.Name, location.Id);
             }
         }
+        
+        logger.LogInformation("Completed weather sync for {Count} locations", locations.Count);
     }
 
     public async Task SyncWeatherForUserTrackedLocationsAsync(Guid userId)
@@ -135,7 +193,13 @@ public class OpenWeatherService(
             .Select(tl => tl.Location)
             .ToListAsync();
 
-        if (!trackedLocations.Any()) return;
+        if (!trackedLocations.Any())
+        {
+            logger.LogInformation("No tracked locations found for user {UserId}", userId);
+            return;
+        }
+
+        logger.LogInformation("Starting weather sync for user {UserId} with {Count} locations", userId, trackedLocations.Count);
 
         // 2. Iterate and update each location with both daily and hourly weather
         foreach (var location in trackedLocations)
@@ -147,9 +211,12 @@ public class OpenWeatherService(
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to sync weather for {location.Name} (User {userId}): {ex.Message}");
+                logger.LogError(ex, "Failed to sync weather for location {LocationName} ({LocationId}) for user {UserId}",
+                    location.Name, location.Id, userId);
             }
         }
+        
+        logger.LogInformation("Completed weather sync for user {UserId}", userId);
     }
 
     private string GetApiKey()

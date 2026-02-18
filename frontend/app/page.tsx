@@ -9,6 +9,9 @@ import Tabs from "./Tabs";
 import Header from "./Header";
 import AddLocationModal from "./AddLocationModal";
 import LocationWarningModal from "./LocationWarningModal";
+import UserPreferenceModal from "./UserPreferenceModal";
+import HourlyWeatherModal from "./HourlyWeatherModal";
+import TodayWeatherModal from "./TodayWeatherModal";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -20,8 +23,21 @@ export default function Home() {
   } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+  const [isPreferenceModalOpen, setIsPreferenceModalOpen] = useState(false);
+  const [isHourlyModalOpen, setIsHourlyModalOpen] = useState(false);
+  const [isTodayModalOpen, setIsTodayModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("favorites");
-  const { isLoggedIn, user } = useAuth(); // Get the authentication status and user info
+  const { isLoggedIn, user } = useAuth();
+  
+  // State for hourly and today modals
+  const [selectedLocationForModal, setSelectedLocationForModal] = useState<{
+    locationId: string;
+    locationName: string;
+    summary?: string;
+    minTemp?: string;
+    maxTemp?: string;
+    rain?: string;
+  } | null>(null);
 
   const handleSelectLocation = (locationId: string, locationName: string) => {
     setSelectedLocation({ id: locationId, name: locationName });
@@ -66,10 +82,42 @@ export default function Home() {
     queryClient.refetchQueries({ type: 'active' });
   };
 
+  const handleOpenPreferences = () => {
+    setIsPreferenceModalOpen(true);
+  };
+
+  const handleClosePreferenceModal = () => {
+    setIsPreferenceModalOpen(false);
+  };
+
+  const handleHourlyWeatherClick = (locationId: string, locationName: string) => {
+    setSelectedLocationForModal({ locationId, locationName });
+    setIsHourlyModalOpen(true);
+  };
+
+  const handleForecastClick = (locationId: string, locationName: string) => {
+    setSelectedLocation({ id: locationId, name: locationName });
+  };
+
+  const handleTodayClick = (locationId: string, locationName: string, summary: string, minTemp?: string, maxTemp?: string, rain?: string) => {
+    setSelectedLocationForModal({ locationId, locationName, summary, minTemp, maxTemp, rain });
+    setIsTodayModalOpen(true);
+  };
+
+  const handleCloseHourlyModal = () => {
+    setIsHourlyModalOpen(false);
+    setSelectedLocationForModal(null);
+  };
+
+  const handleCloseTodayModal = () => {
+    setIsTodayModalOpen(false);
+    setSelectedLocationForModal(null);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-gray-200">
-        <Header onAddLocationClick={handleAddLocationClick} onRefreshClick={handleRefreshClick} />
+        <Header onAddLocationClick={handleAddLocationClick} onRefreshClick={handleRefreshClick} onPreferencesClick={handleOpenPreferences} />
         <div className="flex items-center justify-center pt-24 w-full px-4">
           <div className="w-full max-w-4xl">
             <Tabs defaultValue="favorites" value={activeTab} onTabChange={setActiveTab}>
@@ -83,7 +131,10 @@ export default function Home() {
                 <LocationsList
                   onSelectLocation={handleSelectLocation}
                   activeTab={activeTab}
-                  onTabChange={setActiveTab} // Pass the setActiveTab function to update the active tab
+                  onTabChange={setActiveTab}
+                  onHourlyWeatherClick={handleHourlyWeatherClick}
+                  onForecastClick={handleForecastClick}
+                  onTodayClick={handleTodayClick}
                 />
               )}
             </Tabs>
@@ -100,6 +151,33 @@ export default function Home() {
               onConfirm={handleConfirmAddLocation}
               onCancel={handleCancelAddLocation}
             />
+
+            <UserPreferenceModal
+              isOpen={isPreferenceModalOpen}
+              onClose={handleClosePreferenceModal}
+              userId={user?.id || ""}
+            />
+
+            {selectedLocationForModal && (
+              <>
+                <HourlyWeatherModal
+                  isOpen={isHourlyModalOpen}
+                  onClose={handleCloseHourlyModal}
+                  locationId={selectedLocationForModal.locationId}
+                  locationName={selectedLocationForModal.locationName}
+                  userId={user?.id || ""}
+                />
+                <TodayWeatherModal
+                  isOpen={isTodayModalOpen}
+                  onClose={handleCloseTodayModal}
+                  locationName={selectedLocationForModal.locationName}
+                  summary={selectedLocationForModal.summary || ""}
+                  minTemp={selectedLocationForModal.minTemp || ""}
+                  maxTemp={selectedLocationForModal.maxTemp || ""}
+                  rain={selectedLocationForModal.rain || ""}
+                />
+              </>
+            )}
           </div>
         </div>
       </div>

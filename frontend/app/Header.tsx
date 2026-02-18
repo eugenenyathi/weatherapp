@@ -14,9 +14,10 @@ import { Sun, RefreshCw, MapPinPlus, User, Settings, LogOut } from "lucide-react
 interface HeaderProps {
   onAddLocationClick: () => void;
   onRefreshClick?: () => void;
+  onPreferencesClick?: () => void;
 }
 
-const Header = ({ onAddLocationClick, onRefreshClick }: HeaderProps) => {
+const Header = ({ onAddLocationClick, onRefreshClick, onPreferencesClick }: HeaderProps) => {
   const { isLoggedIn, user, logout } = useAuth();
   const router = useRouter();
 
@@ -25,7 +26,9 @@ const Header = ({ onAddLocationClick, onRefreshClick }: HeaderProps) => {
   };
 
   const handlePreferencesClick = () => {
-    router.push("/preferences");
+    if (onPreferencesClick) {
+      onPreferencesClick();
+    }
   };
 
   const handleLogoutClick = () => {
@@ -44,7 +47,7 @@ const Header = ({ onAddLocationClick, onRefreshClick }: HeaderProps) => {
         <Button
           variant="outline"
           size="sm"
-          className="hidden md:inline-flex"
+          className="hidden md:inline-flex cursor-pointer"
           onClick={onRefreshClick}
           title="Refresh"
         >
@@ -54,7 +57,7 @@ const Header = ({ onAddLocationClick, onRefreshClick }: HeaderProps) => {
         <Button
           variant="outline"
           size="icon"
-          className="md:hidden"
+          className="md:hidden cursor-pointer"
           onClick={onRefreshClick}
           title="Refresh"
         >
@@ -64,7 +67,7 @@ const Header = ({ onAddLocationClick, onRefreshClick }: HeaderProps) => {
         <Button
           variant="outline"
           size="sm"
-          className="hidden md:inline-flex"
+          className="hidden md:inline-flex cursor-pointer"
           onClick={handleAddLocationButtonClick}
         >
           <MapPinPlus className="w-4 h-4 mr-2" />
@@ -74,7 +77,7 @@ const Header = ({ onAddLocationClick, onRefreshClick }: HeaderProps) => {
         <Button
           variant="outline"
           size="icon"
-          className="md:hidden"
+          className="md:hidden cursor-pointer"
           onClick={handleAddLocationButtonClick}
           title="Add Location"
         >
@@ -83,7 +86,7 @@ const Header = ({ onAddLocationClick, onRefreshClick }: HeaderProps) => {
         {/* User dropdown - shown on all screens */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="cursor-pointer">
               {isLoggedIn ? (
                 <>
                   <User className="w-4 h-4 mr-2" />
