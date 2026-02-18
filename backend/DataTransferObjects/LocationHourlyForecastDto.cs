@@ -8,4 +8,5 @@ public class LocationHourlyForecastDto
 	public string LocationName { get; set; } = string.Empty;
 	public Unit Unit { get; set; }
 	public List<HourWeatherDto> HourlyForecasts { get; set; } = new();
+	public DateTime LastSyncedAt { get; set; }
 }

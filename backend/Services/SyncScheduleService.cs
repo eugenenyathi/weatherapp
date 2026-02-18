@@ -1,7 +1,9 @@
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using weatherapp.Data;
+using weatherapp.DataTransferObjects;
 using weatherapp.Entities;
+using weatherapp.Exceptions;
 using weatherapp.Services.Interfaces;
 
 namespace weatherapp.Services;
@@ -118,6 +120,62 @@ public class SyncScheduleService(
 			// Re-register recurring jobs for each user
 			await UpdateSyncSchedulesForUserAsync(preference.UserId, preference.RefreshInterval);
 		}
+	}
+
+	public async Task<RefreshResultDto> RefreshWeatherForUserTrackedLocationsAsync(Guid userId)
+	{
+		const int rateLimitMinutes = 15;
+
+		// Get user preference to check rate limit
+		var userPreference = await context.UserPreferences
+			.FirstOrDefaultAsync(up => up.UserId == userId);
+
+		if (userPreference == null)
+		{
+			return new RefreshResultDto
+			{
+				Success = false,
+				Message = "User preference not found. Please set up your preferences first."
+			};
+		}
+
+		// Check if rate limit is exceeded
+		if (userPreference.LastManualRefreshAt.HasValue)
+		{
+			var timeSinceLastRefresh = DateTime.UtcNow - userPreference.LastManualRefreshAt.Value;
+			if (timeSinceLastRefresh < TimeSpan.FromMinutes(rateLimitMinutes))
+			{
+				var retryAfter = TimeSpan.FromMinutes(rateLimitMinutes) - timeSinceLastRefresh;
+				var nextRefreshAllowedAt = userPreference.LastManualRefreshAt.Value + TimeSpan.FromMinutes(rateLimitMinutes);
+
+				return new RefreshResultDto
+				{
+					Success = false,
+					Message = $"You can only refresh weather data once every {rateLimitMinutes} minutes. Please try again in {retryAfter.TotalMinutes:F1} minutes.",
+					NextRefreshAllowedAt = nextRefreshAllowedAt
+				};
+			}
+		}
+
+		// Trigger immediate sync
+		await openWeatherService.SyncWeatherForUserTrackedLocationsAsync(userId);
+
+		// Update last manual refresh time
+		userPreference.LastManualRefreshAt = DateTime.UtcNow;
+		await context.SaveChangesAsync();
+
+		// Get the latest sync time from LocationSyncSchedules
+		var lastSyncedAt = await context.LocationSyncSchedules
+			.Where(lss => lss.UserId == userId)
+			.MaxAsync(lss => (DateTime?)lss.LastSyncAt);
+
+		return new RefreshResultDto
+		{
+			Success = true,
+			Message = $"Weather data refreshed successfully for all your tracked locations.",
+			LastSyncedAt = lastSyncedAt ?? DateTime.UtcNow,
+			NextRefreshAllowedAt = DateTime.UtcNow.AddMinutes(rateLimitMinutes)
+		};
 	}
 
 	private string GetCronFromMinutes(int minutes)

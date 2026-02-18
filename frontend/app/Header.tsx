@@ -36,6 +36,14 @@ const Header = ({ onAddLocationClick, onRefreshClick, onPreferencesClick }: Head
     router.push("/");
   };
 
+  const handleLoginClick = () => {
+    router.push("/login");
+  };
+
+  const handleRegisterClick = () => {
+    router.push("/register");
+  };
+
   return (
     <div className="fixed top-2 left-1/2 transform -translate-x-1/2 w-full max-w-4xl z-10 flex items-center justify-between py-4 px-4">
       <div className="flex items-center space-x-2">
@@ -98,14 +106,29 @@ const Header = ({ onAddLocationClick, onRefreshClick, onPreferencesClick }: Head
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={handlePreferencesClick}>
-              <Settings className="w-4 h-4 mr-2" />
-              Preferences
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLogoutClick}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </DropdownMenuItem>
+            {isLoggedIn ? (
+              <>
+                <DropdownMenuItem onClick={handlePreferencesClick}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Preferences
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogoutClick}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <>
+                <DropdownMenuItem onClick={handleLoginClick}>
+                  <User className="w-4 h-4 mr-2" />
+                  Login
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleRegisterClick}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Register
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

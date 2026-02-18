@@ -26,12 +26,14 @@ interface Location {
 interface AddLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAdded?: () => void;
   userId: string;
 }
 
 const AddLocationModal = ({
   isOpen,
   onClose,
+  onAdded,
   userId
 }: AddLocationModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,6 +102,12 @@ const AddLocationModal = ({
       });
 
       setIsRefreshing(false);
+
+      // Notify parent that location was added successfully
+      if (onAdded) {
+        onAdded();
+      }
+
       onClose();
     } catch (error) {
       console.error('Error adding location:', error);

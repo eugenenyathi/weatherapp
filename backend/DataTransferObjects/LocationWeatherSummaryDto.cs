@@ -13,4 +13,5 @@ public class LocationWeatherSummaryDto
 	public decimal Rain { get; set; }
 	public Unit Unit { get; set; }
 	public bool isFavorite { get; set; }
+	public DateTime LastSyncedAt { get; set; }
 }

@@ -114,6 +114,11 @@ export default function Home() {
     setSelectedLocationForModal(null);
   };
 
+  const handleLocationAdded = () => {
+    // Switch to "all" tab after adding a new location
+    setActiveTab("all");
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-gray-200">
@@ -142,6 +147,7 @@ export default function Home() {
             <AddLocationModal
               isOpen={isModalOpen}
               onClose={handleCloseModal}
+              onAdded={handleLocationAdded}
               userId={user?.id || ""}
             />
 

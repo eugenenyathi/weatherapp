@@ -9,4 +9,5 @@ public interface ISyncScheduleService
 	Task RemoveSyncSchedulesForUserAsync(Guid userId);
 	Task TriggerSyncForUserAsync(Guid userId);
 	Task InitializeAllUserSyncSchedulesAsync();
+	Task<RefreshResultDto> RefreshWeatherForUserTrackedLocationsAsync(Guid userId);
 }

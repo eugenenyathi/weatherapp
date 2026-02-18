@@ -44,6 +44,11 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 			.Where(tl => tl.UserId == userId)
 			.ToListAsync();
 
+		// Get the last synced time for the user's locations
+		var lastSyncedAt = await context.LocationSyncSchedules
+			.Where(lss => lss.UserId == userId)
+			.MaxAsync(lss => (DateTime?)lss.LastSyncAt) ?? DateTime.MinValue;
+
 		// Map to DTOs with current day summaries
 		return trackedLocations.Select(tl =>
 		{
@@ -63,7 +68,8 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 					? (unit == Unit.Metric ? currentDayWeather.MaxTempMetric : currentDayWeather.MaxTempImperial)
 					: 0,
 				Rain = currentDayWeather?.Rain ?? 0,
-				Unit = unit
+				Unit = unit,
+				LastSyncedAt = lastSyncedAt
 			};
 		}).ToList();
 	}
@@ -107,6 +113,11 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 			throw new ArgumentException("Location not found.");
 		}
 
+		// Get the last synced time for this user-location pair
+		var lastSyncedAt = await context.LocationSyncSchedules
+			.Where(lss => lss.UserId == userId && lss.LocationId == locationId)
+			.MaxAsync(lss => (DateTime?)lss.LastSyncAt) ?? DateTime.MinValue;
+
 		return new LocationFiveDayForecastDto
 		{
 
@@ -121,7 +132,8 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 				Rain = dw.Rain ?? 0,
 				Humidity = (int)dw.Humidity,
 				Summary = dw.Summary
-			}).ToList()
+			}).ToList(),
+			LastSyncedAt = lastSyncedAt
 		};
 	}
 
@@ -164,6 +176,11 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 			throw new ArgumentException("Location not found.");
 		}
 
+		// Get the last synced time for this user-location pair
+		var lastSyncedAt = await context.LocationSyncSchedules
+			.Where(lss => lss.UserId == userId && lss.LocationId == locationId)
+			.MaxAsync(lss => (DateTime?)lss.LastSyncAt) ?? DateTime.MinValue;
+
 		return new LocationHourlyForecastDto
 		{
 			LocationId = location.Id,
@@ -175,7 +192,8 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 				TempMetric = hw.TempMetric,
 				TempImperial = hw.TempImperial,
 				Humidity = hw.Humidity
-			}).ToList()
+			}).ToList(),
+			LastSyncedAt = lastSyncedAt
 		};
 	}
 }

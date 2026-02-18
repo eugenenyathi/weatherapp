@@ -51,11 +51,6 @@ function RegisterPageContent() {
             {error}
           </div>
         )}
-        {registerMutation.isPending && (
-          <div className="mb-3 p-2 bg-blue-100 text-blue-700 rounded text-sm text-center">
-            Registering...
-          </div>
-        )}
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label htmlFor="name" className="block text-gray-700 mb-1">Name</label>
