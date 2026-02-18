@@ -1,0 +1,27 @@
+# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile
+# to build your images for faster debugging.
+
+# This Dockerfile is optimized for Visual Studio debugging on Windows
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+ENV ASPNETCORE_URLS=http://+:8080;https://+:8081
+ENV ASPNETCORE_ENVIRONMENT=Development
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY ["weatherapp.csproj", "./"]
+RUN dotnet restore "weatherapp.csproj"
+COPY . .
+WORKDIR "/src"
+RUN dotnet build "weatherapp.csproj" -c Debug -o /app/build
+
+FROM build AS debug
+WORKDIR /app
+# Copy dev settings if exists
+COPY ./appsettings.Development.json ./appsettings.Development.json 2>/dev/null || echo "No dev settings found"
+COPY ./appsettings.json ./appsettings.json 2>/dev/null || echo "No appsettings found"
+
+ENTRYPOINT ["dotnet", "weatherapp.dll", "--urls", "http://0.0.0.0:8080;https://0.0.0.0:8081"]

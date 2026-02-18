@@ -1,0 +1,54 @@
+services:
+  # SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: weatherapp-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong@Pass123
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - weatherapp-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'YourStrong@Pass123' -Q 'SELECT 1' || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Weather App Backend API
+  weatherapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weatherapp-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=weatherapp;User Id=sa;Password=YourStrong@Pass123;TrustServerCertificate=True;MultipleActiveResultSets=true
+      - OpenWeatherApiKey=2911fcf2178024f9be9c9cbacf9390c3
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - weatherapp-network
+    restart: unless-stopped
+
+  # Hangfire Dashboard (optional - separate container for monitoring)
+  # Note: Hangfire dashboard is included in the main app at /hangfire endpoint
+
+volumes:
+  sqlserver-data:
+    driver: local
+
+networks:
+  weatherapp-network:
+    driver: bridge

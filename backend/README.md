@@ -83,6 +83,7 @@ Ensure the following are installed on your system:
 |----------|---------|---------------|
 | .NET SDK | 9.0+ | [Download](https://dotnet.microsoft.com/download/dotnet/9.0) |
 | SQL Server | 2016+ or Express | [Download](https://www.microsoft.com/sql-server/sql-server-downloads) |
+| Docker (Optional) | 20.10+ | [Download](https://www.docker.com/products/docker-desktop) |
 | IDE (Optional) | - | Visual Studio 2022, Rider, or VS Code |
 
 ### Verify Installation
@@ -93,25 +94,68 @@ dotnet --version
 
 # Check installed EF Core tools
 dotnet ef --version
+
+# Check Docker installation
+docker --version
+docker compose version
 ```
 
 ---
 
 ## Getting Started
 
-### 1. Clone or Navigate to the Project
+### Option 1: Docker (Recommended for Quick Start)
+
+The easiest way to run the application is using Docker Compose:
+
+```bash
+# Build and run all services (API + SQL Server)
+docker compose up --build
+
+# Run in detached mode (background)
+docker compose up -d --build
+
+# View logs
+docker compose logs -f weatherapp
+docker compose logs -f sqlserver
+
+# Stop all services
+docker compose down
+
+# Stop and remove volumes (deletes all data)
+docker compose down -v
+```
+
+**Access Points:**
+- **API:** `http://localhost:5000` (HTTP) or `https://localhost:5001` (HTTPS)
+- **Hangfire Dashboard:** `http://localhost:5000/hangfire` or `https://localhost:5001/hangfire`
+- **Health Check:** `http://localhost:5000/api/health` or `https://localhost:5001/api/health`
+- **SQL Server:** `localhost:1433` (from host machine)
+
+> **Note:** Swagger UI can be enabled by adding the Swashbuckle package. See [API Testing](#api-testing) for details.
+
+**Development Mode with Docker:**
+
+```bash
+# Run with development settings
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+### Option 2: Local Development Setup
+
+#### 1. Clone or Navigate to the Project
 
 ```bash
 cd C:\Users\eugen\RiderProjects\weatherapp\backend
 ```
 
-### 2. Restore Dependencies
+#### 2. Restore Dependencies
 
 ```bash
 dotnet restore
 ```
 
-### 3. Configure Connection String
+#### 3. Configure Connection String
 
 Edit `appsettings.json` with your SQL Server credentials:
 
@@ -126,7 +170,7 @@ Edit `appsettings.json` with your SQL Server credentials:
 
 > **Note:** The current configuration uses a development API key. For production, obtain your own key from [OpenWeatherMap](https://openweathermap.org/api).
 
-### 4. Create the Database
+#### 4. Create the Database
 
 ```bash
 # Using EF Core migrations
@@ -136,11 +180,11 @@ dotnet ef database update
 If migrations don't exist, create them first:
 
 ```bash
-dotnet ef migrations add InitMigration
+dotnet ef migrations add InitialCreate
 dotnet ef database update
 ```
 
-### 5. Run the Application
+#### 5. Run the Application
 
 ```bash
 dotnet run
@@ -150,11 +194,84 @@ The API will be available at:
 - **HTTPS:** `https://localhost:7001` (or configured port)
 - **HTTP:** `http://localhost:5001` (or configured port)
 
-### 6. Access Hangfire Dashboard
+#### 6. Access Hangfire Dashboard
 
 Navigate to: `https://localhost:7001/hangfire`
 
 The dashboard provides real-time monitoring of all background jobs.
+
+---
+
+## Docker Configuration
+
+The application includes Docker support for easy deployment and development.
+
+### Docker Files Overview
+
+| File | Purpose |
+|------|---------|
+| `Dockerfile` | Production build (multi-stage) |
+| `Dockerfile.dev` | Development build with debugging support |
+| `docker-compose.yml` | Production orchestration (API + SQL Server) |
+| `docker-compose.dev.yml` | Development overrides |
+| `.dockerignore` | Excludes unnecessary files from build |
+
+### Docker Commands
+
+```bash
+# Build and run (production)
+docker compose up --build
+
+# Build and run (development)
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+# Run in background
+docker compose up -d --build
+
+# View logs
+docker compose logs -f
+docker compose logs -f weatherapp
+docker compose logs -f sqlserver
+
+# Stop services
+docker compose down
+
+# Stop and remove data volumes
+docker compose down -v
+
+# Rebuild without cache
+docker compose build --no-cache
+docker compose up
+```
+
+### Environment Variables in Docker
+
+The `docker-compose.yml` uses these defaults:
+
+| Variable | Value |
+|----------|-------|
+| `MSSQL_SA_PASSWORD` | `YourStrong@Pass123` |
+| `Database` | `weatherapp` |
+| `OpenWeatherApiKey` | From appsettings.json |
+
+**Change these in production!**
+
+### Connecting to SQL Server in Docker
+
+```bash
+# From host machine
+sqlcmd -S localhost -U sa -P 'YourStrong@Pass123'
+
+# Or using connection string
+Server=localhost;Database=weatherapp;User Id=sa;Password=YourStrong@Pass123;TrustServerCertificate=True;
+```
+
+### Running Migrations in Docker
+
+```bash
+# Execute migration inside container
+docker compose exec weatherapp dotnet ef database update
+```
 
 ---
 
@@ -246,6 +363,13 @@ dotnet watch run
 ---
 
 ## API Endpoints
+
+### Health
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Basic health check (for containers/load balancers) |
+| GET | `/api/health/detailed` | Detailed health check with database connectivity |
 
 ### Authentication
 
@@ -667,7 +791,55 @@ catch (Exception ex)
 
 ## Troubleshooting
 
-### Database Connection Issues
+### Docker Issues
+
+#### Container Won't Start
+
+**Error:** `weatherapp` container exits immediately
+
+**Solution:**
+```bash
+# Check logs for errors
+docker compose logs weatherapp
+
+# Common issues:
+# 1. SQL Server not ready - wait for sqlserver health check
+# 2. Connection string mismatch - verify environment variables
+# 3. Database not migrated - run migrations manually
+docker compose exec weatherapp dotnet ef database update
+```
+
+#### SQL Server Connection in Docker
+
+**Error:** `A network-related or instance-specific error occurred`
+
+**Solution:**
+```bash
+# Ensure SQL Server is healthy
+docker compose ps
+docker compose logs sqlserver
+
+# Verify connection string uses service name 'sqlserver' not 'localhost'
+# In docker-compose.yml:
+# Server=sqlserver;Database=weatherapp;...
+```
+
+#### Rebuild Docker Images
+
+**Issue:** Changes not reflected in container
+
+**Solution:**
+```bash
+# Force rebuild without cache
+docker compose build --no-cache
+docker compose up -d
+
+# Or remove volumes and recreate
+docker compose down -v
+docker compose up --build
+```
+
+### Database Connection Issues (Local)
 
 **Error:** `Cannot open database "weatherapp"`
 
@@ -746,9 +918,35 @@ Access at: `https://localhost:7001/hangfire`
 
 ### API Testing
 
+#### Swagger UI (Recommended)
+
+To enable Swagger UI, install the Swashbuckle package:
+
+```bash
+dotnet add package Swashbuckle.AspNetCore
+```
+
+Then update `Program.cs`:
+
+```csharp
+// In builder.Services section:
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// In the development block:
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+```
+
+Access at: `http://localhost:5000/swagger` or `https://localhost:5001/swagger`
+
+#### Other Tools
+
 Use the included `weatherapp.http` file or tools like:
 - Postman
 - Insomnia
-- Swagger/OpenAPI (if enabled)
 
 ---

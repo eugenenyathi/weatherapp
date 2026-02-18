@@ -10,7 +10,9 @@ A modern, responsive weather application built with Next.js 16, React 19, and sh
 - **npm** or **yarn**
 - Backend API running (see Backend Repository)
 
-### Installation
+### Option 1: Local Development
+
+#### Installation
 
 ```bash
 # Clone the repository
@@ -24,7 +26,7 @@ npm install
 cp .env.example .env.local
 ```
 
-### Environment Variables
+#### Environment Variables
 
 Create a `.env.local` file in the root directory:
 
@@ -36,7 +38,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:5243/api
 NEXT_PUBLIC_OPENWEATHER_API_KEY=your_api_key_here
 ```
 
-### Running the Development Server
+#### Running the Development Server
 
 ```bash
 npm run dev
@@ -44,7 +46,39 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Production Build
+### Option 2: Docker Deployment
+
+#### Build and Run with Docker
+
+```bash
+# Build the Docker image
+docker build -t weatherapp-frontend .
+
+# Run the container
+docker run -d \
+  -p 3000:3000 \
+  -e NEXT_PUBLIC_API_BASE_URL=http://localhost:5243/api \
+  -e NEXT_PUBLIC_OPENWEATHER_API_KEY=your_api_key \
+  --name weatherapp-frontend \
+  weatherapp-frontend
+```
+
+#### Using Docker Compose
+
+```bash
+# Start the application
+docker-compose up -d
+
+# View logs
+docker-compose logs -f frontend
+
+# Stop the application
+docker-compose down
+```
+
+Access the application at [http://localhost:3000](http://localhost:3000).
+
+### Option 3: Production Build
 
 ```bash
 npm run build
@@ -262,6 +296,12 @@ frontend/
 
 - **Sonner** - Toast notifications
 
+### Deployment
+
+- **Docker** - Containerization with multi-stage builds
+- **Optimized image size** - ~150MB final production image
+- **Health checks** - Built-in container health monitoring
+
 ## 📱 Responsive Breakpoints
 
 ```css
@@ -321,3 +361,80 @@ npm start            # Start production server
 # Code Quality
 npm run lint         # Run ESLint
 ```
+
+## 🐳 Docker Guide
+
+### Image Structure
+
+The Dockerfile uses a **multi-stage build** process with 3 stages:
+
+1. **deps** - Installs dependencies (cached for faster builds)
+2. **builder** - Builds the Next.js application
+3. **runner** - Minimal production image (~150MB)
+
+### Build Arguments
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `NEXT_PUBLIC_API_BASE_URL` | `http://localhost:5243/api` | Backend API URL |
+| `NEXT_PUBLIC_OPENWEATHER_API_KEY` | (empty) | OpenWeatherMap API key |
+
+### Docker Commands
+
+```bash
+# Build the image
+docker build -t weatherapp-frontend .
+
+# Run locally
+docker run -d -p 3000:3000 --name weatherapp-frontend weatherapp-frontend
+
+# Run with environment variables
+docker run -d \
+  -p 3000:3000 \
+  -e NEXT_PUBLIC_API_BASE_URL=http://api.example.com \
+  -e NEXT_PUBLIC_OPENWEATHER_API_KEY=your_key \
+  weatherapp-frontend
+
+# View logs
+docker logs -f weatherapp-frontend
+
+# Execute commands in container
+docker exec -it weatherapp-frontend sh
+
+# Health check
+docker inspect --format='{{.State.Health.Status}}' weatherapp-frontend
+```
+
+### Docker Compose
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+
+# Rebuild and restart
+docker-compose up -d --build
+```
+
+### Security Features
+
+- ✅ **Non-root user** - Runs as `nextjs` user (UID 1001)
+- ✅ **Minimal base image** - Alpine Linux
+- ✅ **Health checks** - Automatic container health monitoring
+- ✅ **Signal handling** - Uses `dumb-init` for proper signal propagation
+- ✅ **Read-only filesystem** - Application files are read-only
+
+### Production Checklist
+
+- [ ] Set secure API base URL
+- [ ] Add OpenWeatherMap API key
+- [ ] Configure resource limits (CPU/memory)
+- [ ] Set up log aggregation
+- [ ] Configure health check monitoring
+- [ ] Enable HTTPS termination (reverse proxy)
+- [ ] Set up automatic restarts (`--restart unless-stopped`)
