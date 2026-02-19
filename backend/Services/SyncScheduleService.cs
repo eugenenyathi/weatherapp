@@ -164,16 +164,18 @@ public class SyncScheduleService(
 		userPreference.LastManualRefreshAt = DateTime.UtcNow;
 		await context.SaveChangesAsync();
 
-		// Get the latest sync time from LocationSyncSchedules
+		// Get the latest sync time from LocationSyncSchedules (convert from UTC to local time)
 		var lastSyncedAt = await context.LocationSyncSchedules
 			.Where(lss => lss.UserId == userId)
 			.MaxAsync(lss => (DateTime?)lss.LastSyncAt);
+
+		var lastSyncedAtLocal = lastSyncedAt.HasValue ? lastSyncedAt.Value.ToLocalTime() : DateTime.UtcNow;
 
 		return new RefreshResultDto
 		{
 			Success = true,
 			Message = $"Weather data refreshed successfully for all your tracked locations.",
-			LastSyncedAt = lastSyncedAt ?? DateTime.UtcNow,
+			LastSyncedAt = lastSyncedAtLocal,
 			NextRefreshAllowedAt = DateTime.UtcNow.AddMinutes(rateLimitMinutes)
 		};
 	}

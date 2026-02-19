@@ -13,19 +13,22 @@ export const useUserPreference = (userId: string) => {
 
 export const useCreateUserPreference = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ userId, preferenceData }: { userId: string; preferenceData: UserPreferenceRequest }) =>
       userPreferenceService.createUserPreference(userId, preferenceData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['userPreference', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['currentDaySummaries', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['fiveDayForecast', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['hourlyForecast', variables.userId] });
     },
   });
 };
 
 export const useUpdateUserPreference = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ userId, preferenceId, preferenceData }: {
       userId: string;
@@ -35,6 +38,9 @@ export const useUpdateUserPreference = () => {
       userPreferenceService.updateUserPreference(userId, preferenceId, preferenceData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['userPreference', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['currentDaySummaries', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['fiveDayForecast', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['hourlyForecast', variables.userId] });
     },
   });
 };

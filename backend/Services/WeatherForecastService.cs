@@ -45,10 +45,12 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 			.Where(tl => tl.UserId == userId)
 			.ToListAsync();
 
-		// Get the last synced time for the user's locations
+		// Get the last synced time for the user's locations (convert from UTC to local time)
 		var lastSyncedAt = await context.LocationSyncSchedules
 			.Where(lss => lss.UserId == userId)
 			.MaxAsync(lss => (DateTime?)lss.LastSyncAt) ?? DateTime.MinValue;
+
+		var lastSyncedAtLocal = lastSyncedAt != DateTime.MinValue ? lastSyncedAt.ToLocalTime() : DateTime.MinValue;
 
 		// Map to DTOs with current day summaries
 		return trackedLocations.Select(tl =>
@@ -70,7 +72,7 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 					: 0,
 				Rain = currentDayWeather?.Rain ?? 0,
 				Unit = unit,
-				LastSyncedAt = lastSyncedAt
+				LastSyncedAt = lastSyncedAtLocal
 			};
 		}).ToList();
 	}
@@ -114,10 +116,12 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 			throw new ArgumentException("Location not found.");
 		}
 
-		// Get the last synced time for this user-location pair
+		// Get the last synced time for this user-location pair (convert from UTC to local time)
 		var lastSyncedAt = await context.LocationSyncSchedules
 			.Where(lss => lss.UserId == userId && lss.LocationId == locationId)
 			.MaxAsync(lss => (DateTime?)lss.LastSyncAt) ?? DateTime.MinValue;
+
+		var lastSyncedAtLocal = lastSyncedAt != DateTime.MinValue ? lastSyncedAt.ToLocalTime() : DateTime.MinValue;
 
 		return new LocationFiveDayForecastDto
 		{
@@ -134,7 +138,7 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 				Humidity = (int)dw.Humidity,
 				Summary = dw.Summary
 			}).ToList(),
-			LastSyncedAt = lastSyncedAt
+			LastSyncedAt = lastSyncedAtLocal
 		};
 	}
 
@@ -177,10 +181,12 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 			throw new ArgumentException("Location not found.");
 		}
 
-		// Get the last synced time for this user-location pair
+		// Get the last synced time for this user-location pair (convert from UTC to local time)
 		var lastSyncedAt = await context.LocationSyncSchedules
 			.Where(lss => lss.UserId == userId && lss.LocationId == locationId)
 			.MaxAsync(lss => (DateTime?)lss.LastSyncAt) ?? DateTime.MinValue;
+
+		var lastSyncedAtLocal = lastSyncedAt != DateTime.MinValue ? lastSyncedAt.ToLocalTime() : DateTime.MinValue;
 
 		return new LocationHourlyForecastDto
 		{
@@ -193,7 +199,7 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 				Temp = unit == Unit.Metric ? hw.TempMetric : hw.TempImperial,
 				Humidity = hw.Humidity
 			}).ToList(),
-			LastSyncedAt = lastSyncedAt
+			LastSyncedAt = lastSyncedAtLocal
 		};
 	}
 }

@@ -20,7 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Settings, Loader2 } from "lucide-react";
 import { userPreferenceService } from "../services/UserPreferenceService";
-import type { UserPreferenceRequest } from "../types";
+import { useUpdateUserPreference, useCreateUserPreference } from "../hooks/userPreferenceHooks";
+import type { UserPreference, UserPreferenceRequest } from "../types";
 
 interface UserPreferenceModalProps {
   isOpen: boolean;
@@ -33,11 +34,14 @@ const UserPreferenceModal = ({
   onClose,
   userId,
 }: UserPreferenceModalProps) => {
-  const [preferredUnit, setPreferredUnit] = useState<"Metric" | "Imperial" | "">("");
-  const [refreshInterval, setRefreshInterval] = useState<string>("");
+  const updatePreference = useUpdateUserPreference();
+  const createPreference = useCreateUserPreference();
+
+  const [preferredUnit, setPreferredUnit] = useState<"Metric" | "Imperial">("Metric");
+  const [refreshInterval, setRefreshInterval] = useState<string>("30");
   const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [existingPreference, setExistingPreference] = useState<UserPreference | null>(null);
 
   useEffect(() => {
     if (isOpen && userId) {
@@ -51,16 +55,19 @@ const UserPreferenceModal = ({
     try {
       const preference = await userPreferenceService.getUserPreference(userId);
       if (preference) {
+        setExistingPreference(preference);
         setPreferredUnit(preference.preferredUnit);
         setRefreshInterval(preference.refreshInterval.toString());
       } else {
-        // No existing preference, set defaults
+        // No existing preference, set defaults for creation
+        setExistingPreference(null);
         setPreferredUnit("Metric");
         setRefreshInterval("30");
       }
     } catch (err: any) {
       setError(err.message || "Failed to load preferences");
-      // Set defaults on error
+      // On error, assume no preference exists and use defaults
+      setExistingPreference(null);
       setPreferredUnit("Metric");
       setRefreshInterval("30");
     } finally {
@@ -69,30 +76,36 @@ const UserPreferenceModal = ({
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
     setError(null);
 
     const request: UserPreferenceRequest = {
-      ...(preferredUnit && { preferredUnit: preferredUnit as "Metric" | "Imperial" }),
-      ...(refreshInterval && { refreshInterval: parseInt(refreshInterval, 10) }),
+      preferredUnit: preferredUnit,
+      refreshInterval: parseInt(refreshInterval, 10),
     };
 
     try {
-      const preference = await userPreferenceService.getUserPreference(userId);
-      
-      if (preference) {
-        await userPreferenceService.updateUserPreference(userId, preference.id, request);
+      if (existingPreference) {
+        // Update existing preference
+        await updatePreference.mutateAsync({
+          userId,
+          preferenceId: existingPreference.id,
+          preferenceData: request,
+        });
       } else {
-        await userPreferenceService.createUserPreference(userId, request);
+        // Create new preference
+        await createPreference.mutateAsync({
+          userId,
+          preferenceData: request,
+        });
       }
-      
+
       onClose();
     } catch (err: any) {
       setError(err.message || "Failed to save preferences");
-    } finally {
-      setIsSaving(false);
     }
   };
+
+  const isSaving = updatePreference.isPending || createPreference.isPending;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -153,9 +166,9 @@ const UserPreferenceModal = ({
           <Button variant="outline" onClick={onClose} disabled={isSaving}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={isSaving || !preferredUnit || !refreshInterval}
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
           >
             {isSaving ? (
               <>
