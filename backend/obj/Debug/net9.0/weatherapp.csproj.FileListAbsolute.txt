@@ -172,6 +172,14 @@ C:\Users\eugen\RiderProjects\weatherapp\weatherapp\obj\Debug\net9.0\refint\weath
 C:\Users\eugen\RiderProjects\weatherapp\weatherapp\obj\Debug\net9.0\weatherapp.pdb
 C:\Users\eugen\RiderProjects\weatherapp\weatherapp\obj\Debug\net9.0\weatherapp.genruntimeconfig.cache
 C:\Users\eugen\RiderProjects\weatherapp\weatherapp\obj\Debug\net9.0\ref\weatherapp.dll
+C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.csproj.AssemblyReference.cache
+C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.AssemblyInfoInputs.cache
+C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.AssemblyInfo.cs
+C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.csproj.CoreCompileInputs.cache
+C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.sourcelink.json
 C:\Users\eugen\RiderProjects\weatherapp\backend\bin\Debug\net9.0\appsettings.Development.json
 C:\Users\eugen\RiderProjects\weatherapp\backend\bin\Debug\net9.0\appsettings.json
 C:\Users\eugen\RiderProjects\weatherapp\backend\bin\Debug\net9.0\weatherapp.staticwebassets.endpoints.json
@@ -328,13 +336,6 @@ C:\Users\eugen\RiderProjects\weatherapp\backend\bin\Debug\net9.0\runtimes\win\li
 C:\Users\eugen\RiderProjects\weatherapp\backend\bin\Debug\net9.0\runtimes\win\lib\net6.0\System.Runtime.Caching.dll
 C:\Users\eugen\RiderProjects\weatherapp\backend\bin\Debug\net9.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\eugen\RiderProjects\weatherapp\backend\bin\Debug\net9.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
-C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.csproj.AssemblyReference.cache
-C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.AssemblyInfoInputs.cache
-C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.AssemblyInfo.cs
-C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.csproj.CoreCompileInputs.cache
-C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.MvcApplicationPartsAssemblyInfo.cs
-C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\scopedcss\bundle\weatherapp.styles.css
 C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\staticwebassets.build.json
 C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\staticwebassets.build.json.cache
@@ -346,4 +347,6 @@ C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\refint\weathera
 C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.pdb
 C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.genruntimeconfig.cache
 C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\ref\weatherapp.dll
-C:\Users\eugen\RiderProjects\weatherapp\backend\obj\Debug\net9.0\weatherapp.sourcelink.json
+C:\Users\eugen\RiderProjects\weatherapp\backend\bin\Debug\net9.0\weatherapp.tests\obj\project.assets.json
+C:\Users\eugen\RiderProjects\weatherapp\backend\bin\Debug\net9.0\weatherapp.tests\obj\weatherapp.tests.csproj.nuget.dgspec.json
+C:\Users\eugen\RiderProjects\weatherapp\backend\bin\Debug\net9.0\weatherapp.tests\obj\Debug\net9.0\weatherapp.tests.sourcelink.json

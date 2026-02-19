@@ -190,8 +190,7 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 			HourlyForecasts = location.HourlyWeathers.Select(hw => new HourWeatherDto
 			{
 				DateTime = hw.DateTime,
-				TempMetric = hw.TempMetric,
-				TempImperial = hw.TempImperial,
+				Temp = unit == Unit.Metric ? hw.TempMetric : hw.TempImperial,
 				Humidity = hw.Humidity
 			}).ToList(),
 			LastSyncedAt = lastSyncedAt

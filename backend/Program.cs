@@ -80,6 +80,9 @@ var app = builder.Build();
 // Initialize global sync recurring job and user sync schedules at startup
 using (var scope = app.Services.CreateScope())
 {
+	var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+	await dbContext.Database.MigrateAsync();
+
 	var globalSyncService = scope.ServiceProvider.GetRequiredService<IGlobalSyncService>();
 	await globalSyncService.InitializeGlobalSyncAsync();
 
@@ -100,11 +103,12 @@ app.Use(async (context, next) =>
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
-{
 	app.MapOpenApi();
-}
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+	app.UseHttpsRedirection();
+
+
 app.UseCors("AllowFrontendOrigin");
 app.UseRouting();
 app.UseMiddleware<GlobalExceptionMiddleware>();

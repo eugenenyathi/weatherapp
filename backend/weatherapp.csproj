@@ -4,7 +4,14 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
     </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Remove="weatherapp.tests\**" />
+        <EmbeddedResource Remove="weatherapp.tests\**" />
+        <None Remove="weatherapp.tests\**" />
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="AutoMapper" Version="13.0.1" />

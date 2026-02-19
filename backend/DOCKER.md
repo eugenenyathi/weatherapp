@@ -20,13 +20,13 @@ docker compose logs -f sqlserver
 
 ## Access Points
 
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| API (HTTP) | http://localhost:5000 | - |
-| API (HTTPS) | https://localhost:5001 | - |
-| Health Check | http://localhost:5000/api/health | - |
-| Hangfire Dashboard | http://localhost:5000/hangfire | - |
-| SQL Server | localhost:1433 | sa / YourStrong@Pass123 |
+| Service | URL | Credentials    |
+|---------|-----|----------------|
+| API (HTTP) | http://localhost:5000 | -              |
+| API (HTTPS) | https://localhost:5001 | -              |
+| Health Check | http://localhost:5000/api/health | -              |
+| Hangfire Dashboard | http://localhost:5000/hangfire | -              |
+| SQL Server | localhost:1433 | sa / admin$123 |
 
 ## Common Commands
 
@@ -71,7 +71,7 @@ docker compose exec weatherapp bash
 docker compose exec weatherapp dotnet --info
 
 # SQL Server connection
-docker compose exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'YourStrong@Pass123'
+docker compose exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'admin$123'
 
 # View container stats
 docker stats

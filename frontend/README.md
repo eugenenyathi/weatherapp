@@ -57,7 +57,7 @@ docker build -t weatherapp-frontend .
 # Run the container
 docker run -d \
   -p 3000:3000 \
-  -e NEXT_PUBLIC_API_BASE_URL=http://localhost:5243/api \
+  -e NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api \
   -e NEXT_PUBLIC_OPENWEATHER_API_KEY=your_api_key \
   --name weatherapp-frontend \
   weatherapp-frontend
