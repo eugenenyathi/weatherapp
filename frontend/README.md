@@ -48,32 +48,17 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Option 2: Docker Deployment
 
-#### Build and Run with Docker
-
-```bash
-# Build the Docker image
-docker build -t weatherapp-frontend .
-
-# Run the container
-docker run -d \
-  -p 3000:3000 \
-  -e NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api \
-  -e NEXT_PUBLIC_OPENWEATHER_API_KEY=your_api_key \
-  --name weatherapp-frontend \
-  weatherapp-frontend
-```
-
 #### Using Docker Compose
 
 ```bash
 # Start the application
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f frontend
+docker compose logs -f frontend
 
 # Stop the application
-docker-compose down
+docker compose down
 ```
 
 Access the application at [http://localhost:3000](http://localhost:3000).

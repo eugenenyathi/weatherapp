@@ -8,7 +8,7 @@ services:
       - MSSQL_SA_PASSWORD=Admin@Weather2026!
       - MSSQL_PID=Developer
     ports:
-      - "1433:1433"
+      - "1435:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
     networks:
@@ -28,7 +28,6 @@ services:
       - OpenWeatherApiKey=2911fcf2178024f9be9c9cbacf9390c3
     ports:
       - "5000:8080"
-      - "5001:8081"
     depends_on:
       - sqlserver
     networks:

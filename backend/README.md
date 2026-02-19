@@ -109,10 +109,7 @@ docker compose version
 The easiest way to run the application is using Docker Compose:
 
 ```bash
-# Build and run all services (API + SQL Server)
-docker compose up --build
-
-# Run in detached mode (background)
+# Build and run all services (API + SQL Server) in detached mode (background)
 docker compose up -d --build
 
 # View logs
@@ -127,19 +124,13 @@ docker compose down -v
 ```
 
 **Access Points:**
-- **API:** `http://localhost:5000` (HTTP) or `https://localhost:5001` (HTTPS)
+- **API:** `http://localhost:5000` (HTTP)
 - **Hangfire Dashboard:** `http://localhost:5000/hangfire` or `https://localhost:5001/hangfire`
 - **Health Check:** `http://localhost:5000/api/health` or `https://localhost:5001/api/health`
-- **SQL Server:** `localhost:1433` (from host machine)
+- **SQL Server:** `localhost:1443` (from host machine)
 
 > **Note:** Swagger UI can be enabled by adding the Swashbuckle package. See [API Testing](#api-testing) for details.
 
-**Development Mode with Docker:**
-
-```bash
-# Run with development settings
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
-```
 
 ### Option 2: Local Development Setup
 
@@ -191,7 +182,6 @@ dotnet run
 ```
 
 The API will be available at:
-- **HTTPS:** `https://localhost:5243` (or configured port)
 - **HTTP:** `http://localhost:5243 (or configured port)
 
 #### 6. Access Hangfire Dashboard
@@ -219,11 +209,8 @@ The application includes Docker support for easy deployment and development.
 ### Docker Commands
 
 ```bash
-# Build and run (production)
+# Build and run 
 docker compose up --build
-
-# Build and run (development)
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 # Run in background
 docker compose up -d --build
@@ -248,10 +235,10 @@ docker compose up
 
 The `docker-compose.yml` uses these defaults:
 
-| Variable | Value |
-|----------|-------|
-| `MSSQL_SA_PASSWORD` | `YourStrong@Pass123` |
-| `Database` | `weatherapp` |
+| Variable | Value            |
+|----------|------------------|
+| `MSSQL_SA_PASSWORD` | `Admin@Weather2026!`               |
+| `Database` | `weatherapp`     |
 | `OpenWeatherApiKey` | From appsettings.json |
 
 **Change these in production!**
@@ -260,18 +247,13 @@ The `docker-compose.yml` uses these defaults:
 
 ```bash
 # From host machine
-sqlcmd -S localhost -U sa -P 'YourStrong@Pass123'
+sqlcmd -S localhost -U sa -P 'Admin@Weather2026!'
 
 # Or using connection string
-Server=localhost;Database=weatherapp;User Id=sa;Password=YourStrong@Pass123;TrustServerCertificate=True;
+Server=localhost;Database=weatherapp;User Id=sa;Password=Admin@Weather2026!;TrustServerCertificate=True;
 ```
 
-### Running Migrations in Docker
 
-```bash
-# Execute migration inside container
-docker compose exec weatherapp dotnet ef database update
-```
 
 ---
 
@@ -337,30 +319,6 @@ The application creates the following tables:
 
 ---
 
-## Running the Application
-
-### Development Mode
-
-```bash
-dotnet run --environment Development
-```
-
-### Production Mode
-
-```bash
-dotnet run --environment Production
-```
-
-### Watch for Changes (Optional)
-
-Install the watch tool:
-
-```bash
-dotnet tool install --global dotnet-watch
-dotnet watch run
-```
-
----
 
 ## API Endpoints
 
