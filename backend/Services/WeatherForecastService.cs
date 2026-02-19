@@ -46,11 +46,13 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 			.ToListAsync();
 
 		// Get the last synced time for the user's locations (convert from UTC to local time)
-		var lastSyncedAt = await context.LocationSyncSchedules
+		var lastSyncedAtUtc = await context.LocationSyncSchedules
 			.Where(lss => lss.UserId == userId)
-			.MaxAsync(lss => (DateTime?)lss.LastSyncAt) ?? DateTime.MinValue;
+			.MaxAsync(lss => (DateTime?)lss.LastSyncAt);
 
-		var lastSyncedAtLocal = lastSyncedAt != DateTime.MinValue ? lastSyncedAt.ToLocalTime() : DateTime.MinValue;
+		var lastSyncedAt = lastSyncedAtUtc.HasValue && lastSyncedAtUtc.Value != DateTime.MinValue
+			? lastSyncedAtUtc.Value.ToLocalTime()
+			: DateTime.MinValue;
 
 		// Map to DTOs with current day summaries
 		return trackedLocations.Select(tl =>
@@ -72,7 +74,7 @@ public class WeatherForecastService(AppDbContext context, ILocationService locat
 					: 0,
 				Rain = currentDayWeather?.Rain ?? 0,
 				Unit = unit,
-				LastSyncedAt = lastSyncedAtLocal
+				LastSyncedAt = lastSyncedAt
 			};
 		}).ToList();
 	}
