@@ -44,6 +44,34 @@ public class TrackLocationService(AppDbContext context, IMapper mapper) : ITrack
 		await context.TrackLocations.AddAsync(trackLocation);
 		await context.SaveChangesAsync();
 
+		// Check if weather data already exists for this location
+		var hasWeatherData = await context.DailyWeathers
+			.AnyAsync(dw => dw.LocationId == requests.LocationId);
+
+		// Create or update LocationSyncSchedule
+		var syncSchedule = await context.LocationSyncSchedules
+			.FirstOrDefaultAsync(lss => lss.UserId == userId && lss.LocationId == requests.LocationId);
+
+		if (syncSchedule == null)
+		{
+			syncSchedule = new LocationSyncSchedule
+			{
+				UserId = userId,
+				LocationId = requests.LocationId,
+				RecurringJobId = string.Empty,
+				LastSyncAt = hasWeatherData ? DateTime.UtcNow : DateTime.MinValue,
+				NextSyncAt = DateTime.UtcNow
+			};
+			context.LocationSyncSchedules.Add(syncSchedule);
+		}
+		else if (hasWeatherData && syncSchedule.LastSyncAt == DateTime.MinValue)
+		{
+			// Update LastSyncAt if weather data exists but wasn't recorded
+			syncSchedule.LastSyncAt = DateTime.UtcNow;
+		}
+
+		await context.SaveChangesAsync();
+
 		// Reload with location data
 		var trackLocationWithLocation = await context.TrackLocations
 			.Include(tl => tl.Location)

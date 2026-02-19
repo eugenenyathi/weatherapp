@@ -10,6 +10,29 @@ interface ForecastComponentProps {
   onBack: () => void;
 }
 
+const getDayName = (dateString: string): string => {
+  const date = new Date(dateString);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // Reset hours for accurate comparison
+  today.setHours(0, 0, 0, 0);
+  tomorrow.setHours(0, 0, 0, 0);
+  const compareDate = new Date(date);
+  compareDate.setHours(0, 0, 0, 0);
+
+  if (compareDate.getTime() === today.getTime()) {
+    return 'Today';
+  }
+  if (compareDate.getTime() === tomorrow.getTime()) {
+    return 'Tomorrow';
+  }
+
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[date.getDay()];
+};
+
 const ForecastComponent = ({ locationId, locationName, onBack }: ForecastComponentProps) => {
   const { user } = useAuth();
   const { data: forecastData, isLoading, error } = useFiveDayForecast(locationId, user?.id || '');
@@ -68,7 +91,7 @@ const ForecastComponent = ({ locationId, locationName, onBack }: ForecastCompone
         {forecastData?.fiveDayForecasts.map((day, index) => (
           <WeatherRow
             key={index}
-            day={day.date}
+            day={getDayName(day.date)}
             rain={`${Math.round(day.rain)}%`}
             maxTemp={day.maxTemp.toString()}
             minTemp={day.minTemp.toString()}

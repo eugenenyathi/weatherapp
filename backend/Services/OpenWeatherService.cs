@@ -62,6 +62,18 @@ public class OpenWeatherService(
 
         await context.SaveChangesAsync();
 
+        // Update LastSyncAt for all users tracking this location
+        var syncSchedules = await context.LocationSyncSchedules
+            .Where(lss => lss.LocationId == location.Id)
+            .ToListAsync();
+
+        foreach (var syncSchedule in syncSchedules)
+        {
+            syncSchedule.LastSyncAt = DateTime.UtcNow;
+        }
+
+        await context.SaveChangesAsync();
+
         logger.LogDebug("Successfully fetched hourly weather for location {LocationName} ({LocationId})",
             location.Name, location.Id);
     }
@@ -127,6 +139,18 @@ public class OpenWeatherService(
 
         await context.SaveChangesAsync();
 
+        // Update LastSyncAt for all users tracking this location
+        var syncSchedules = await context.LocationSyncSchedules
+            .Where(lss => lss.LocationId == location.Id)
+            .ToListAsync();
+
+        foreach (var syncSchedule in syncSchedules)
+        {
+            syncSchedule.LastSyncAt = DateTime.UtcNow;
+        }
+
+        await context.SaveChangesAsync();
+
         logger.LogDebug("Successfully fetched daily weather for location {LocationName} ({LocationId})",
             location.Name, location.Id);
     }
@@ -182,6 +206,16 @@ public class OpenWeatherService(
             {
                 await GetLocationDailyWeather(location);
                 await GetLocationHourlyWeather(location);
+
+                // Update the LastSyncAt for this user-location pair
+                var syncSchedule = await context.LocationSyncSchedules
+                    .FirstOrDefaultAsync(lss => lss.UserId == userId && lss.LocationId == location.Id);
+
+                if (syncSchedule != null)
+                {
+                    syncSchedule.LastSyncAt = DateTime.UtcNow;
+                    await context.SaveChangesAsync();
+                }
             }
             catch (Exception ex)
             {
