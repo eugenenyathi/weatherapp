@@ -10,7 +10,6 @@ A comprehensive ASP.NET Core 9.0 Web API for weather tracking and forecasting, f
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
 - [Database Setup](#database-setup)
-- [Running the Application](#running-the-application)
 - [API Endpoints](#api-endpoints)
 - [Background Job System](#background-job-system)
 - [Entity Design](#entity-design)
@@ -83,7 +82,6 @@ Ensure the following are installed on your system:
 |----------|---------|---------------|
 | .NET SDK | 9.0+ | [Download](https://dotnet.microsoft.com/download/dotnet/9.0) |
 | SQL Server | 2016+ or Express | [Download](https://www.microsoft.com/sql-server/sql-server-downloads) |
-| Docker (Optional) | 20.10+ | [Download](https://www.docker.com/products/docker-desktop) |
 | IDE (Optional) | - | Visual Studio 2022, Rider, or VS Code |
 
 ### Verify Installation
@@ -94,50 +92,16 @@ dotnet --version
 
 # Check installed EF Core tools
 dotnet ef --version
-
-# Check Docker installation
-docker --version
-docker compose version
 ```
 
 ---
 
 ## Getting Started
 
-### Option 1: Docker (Recommended for Quick Start)
-
-The easiest way to run the application is using Docker Compose:
-
-```bash
-# Build and run all services (API + SQL Server) in detached mode (background)
-docker compose up -d --build
-
-# View logs
-docker compose logs -f weatherapp
-docker compose logs -f sqlserver
-
-# Stop all services
-docker compose down
-
-# Stop and remove volumes (deletes all data)
-docker compose down -v
-```
-
-**Access Points:**
-- **API:** `http://localhost:5000` (HTTP)
-- **Hangfire Dashboard:** `http://localhost:5000/hangfire` or `https://localhost:5001/hangfire`
-- **Health Check:** `http://localhost:5000/api/health` or `https://localhost:5001/api/health`
-- **SQL Server:** `localhost:1443` (from host machine)
-
-> **Note:** Swagger UI can be enabled by adding the Swashbuckle package. See [API Testing](#api-testing) for details.
-
-
-### Option 2: Local Development Setup
-
 #### 1. Clone or Navigate to the Project
 
 ```bash
-cd C:\Users\eugen\RiderProjects\weatherapp\backend
+cd backend
 ```
 
 #### 2. Restore Dependencies
@@ -189,71 +153,6 @@ The API will be available at:
 Navigate to: `https://localhost:5243/hangfire`
 
 The dashboard provides real-time monitoring of all background jobs.
-
----
-
-## Docker Configuration
-
-The application includes Docker support for easy deployment and development.
-
-### Docker Files Overview
-
-| File | Purpose |
-|------|---------|
-| `Dockerfile` | Production build (multi-stage) |
-| `Dockerfile.dev` | Development build with debugging support |
-| `docker-compose.yml` | Production orchestration (API + SQL Server) |
-| `docker-compose.dev.yml` | Development overrides |
-| `.dockerignore` | Excludes unnecessary files from build |
-
-### Docker Commands
-
-```bash
-# Build and run 
-docker compose up --build
-
-# Run in background
-docker compose up -d --build
-
-# View logs
-docker compose logs -f
-docker compose logs -f weatherapp
-docker compose logs -f sqlserver
-
-# Stop services
-docker compose down
-
-# Stop and remove data volumes
-docker compose down -v
-
-# Rebuild without cache
-docker compose build --no-cache
-docker compose up
-```
-
-### Environment Variables in Docker
-
-The `docker-compose.yml` uses these defaults:
-
-| Variable | Value            |
-|----------|------------------|
-| `MSSQL_SA_PASSWORD` | `Admin@Weather2026!`               |
-| `Database` | `weatherapp`     |
-| `OpenWeatherApiKey` | From appsettings.json |
-
-**Change these in production!**
-
-### Connecting to SQL Server in Docker
-
-```bash
-# From host machine
-sqlcmd -S localhost -U sa -P 'Admin@Weather2026!'
-
-# Or using connection string
-Server=localhost;Database=weatherapp;User Id=sa;Password=Admin@Weather2026!;TrustServerCertificate=True;
-```
-
-
 
 ---
 
@@ -749,55 +648,7 @@ catch (Exception ex)
 
 ## Troubleshooting
 
-### Docker Issues
-
-#### Container Won't Start
-
-**Error:** `weatherapp` container exits immediately
-
-**Solution:**
-```bash
-# Check logs for errors
-docker compose logs weatherapp
-
-# Common issues:
-# 1. SQL Server not ready - wait for sqlserver health check
-# 2. Connection string mismatch - verify environment variables
-# 3. Database not migrated - run migrations manually
-docker compose exec weatherapp dotnet ef database update
-```
-
-#### SQL Server Connection in Docker
-
-**Error:** `A network-related or instance-specific error occurred`
-
-**Solution:**
-```bash
-# Ensure SQL Server is healthy
-docker compose ps
-docker compose logs sqlserver
-
-# Verify connection string uses service name 'sqlserver' not 'localhost'
-# In docker-compose.yml:
-# Server=sqlserver;Database=weatherapp;...
-```
-
-#### Rebuild Docker Images
-
-**Issue:** Changes not reflected in container
-
-**Solution:**
-```bash
-# Force rebuild without cache
-docker compose build --no-cache
-docker compose up -d
-
-# Or remove volumes and recreate
-docker compose down -v
-docker compose up --build
-```
-
-### Database Connection Issues (Local)
+### Database Connection Issues
 
 **Error:** `Cannot open database "weatherapp"`
 
@@ -866,7 +717,7 @@ options.AddPolicy("AllowFrontendOrigin",
 
 ### Hangfire Dashboard
 
-Access at: `https://localhost:7001/hangfire`
+Access at: `https://localhost:5243/hangfire`
 
 **Features:**
 - View all jobs (Succeeded, Failed, Processing, Enqueued)
@@ -878,33 +729,6 @@ Access at: `https://localhost:7001/hangfire`
 
 #### Swagger UI (Recommended)
 
-To enable Swagger UI, install the Swashbuckle package:
 
-```bash
-dotnet add package Swashbuckle.AspNetCore
-```
+Access at: `http://localhost:5243/swagger` or `https://localhost:5243/swagger`
 
-Then update `Program.cs`:
-
-```csharp
-// In builder.Services section:
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// In the development block:
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-```
-
-Access at: `http://localhost:5000/swagger` or `https://localhost:5001/swagger`
-
-#### Other Tools
-
-Use the included `weatherapp.http` file or tools like:
-- Postman
-- Insomnia
-
----

@@ -74,6 +74,9 @@ builder.Services.AddHttpClient<IOpenWeatherMapHttpClient, OpenWeatherMapHttpClie
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 builder.Services.AddFluentValidationAutoValidation();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
@@ -103,7 +106,11 @@ app.Use(async (context, next) =>
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
+{
 	app.MapOpenApi();
+	app.UseSwagger();
+	app.UseSwaggerUI();
+}
 
 if (!app.Environment.IsDevelopment())
 	app.UseHttpsRedirection();
